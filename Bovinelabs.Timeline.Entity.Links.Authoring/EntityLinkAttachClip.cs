@@ -1,32 +1,42 @@
-/* com.bovinelabs.timeline.entity.links/Authoring/EntityLinkAttachClip.cs */
-using BovineLabs.Core.Keys;
-using BovineLabs.EntityLinks;
 using BovineLabs.Timeline.Authoring;
-using BovineLabs.Timeline.Instantiate;
+using Bovinelabs.Timeline.Entity.Links.Data;
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine.Timeline;
 
-namespace BovineLabs.Timeline.EntityLinks.Authoring
+namespace Bovinelabs.Timeline.Entity.Links.Authoring
 {
     public sealed class EntityLinkAttachClip : DOTSClip, ITimelineClipAsset
     {
-        [K(nameof(EntityLinkKeys))] public byte linkKey;
-        public ResolveRule resolveRule = ResolveRule.Parent | ResolveRule.Owner;
-        public ParentTransformConfig transformConfig = ParentTransformConfig.SetParent | ParentTransformConfig.SetTransform;
+        public EntityLinkTagSchema LinkSchema;
+        public ResolveRule ResolveRule = ResolveRule.Parent;
+        public AttachmentTransformFlags TransformFlags = AttachmentTransformFlags.SetParent | AttachmentTransformFlags.SetTransform;
 
-        public override double duration => 1;
         public ClipCaps clipCaps => ClipCaps.None;
+        public override double duration => 1;
 
-        public override void Bake(Entity clipEntity, BakingContext context)
+        public override void Bake(Unity.Entities.Entity clipEntity, BakingContext context)
         {
+            if (context.Binding != null && context.Binding.Target != Unity.Entities.Entity.Null)
+            {
+                context.Baker.AddTransformUsageFlags(context.Binding.Target, TransformUsageFlags.Dynamic);
+            }
+
             context.Baker.AddComponent(clipEntity, new EntityLinkAttachConfig
             {
-                Key = linkKey,
-                ResolveRule = resolveRule,
-                TransformConfig = transformConfig
+                LinkKey = this.LinkSchema != null ? this.LinkSchema.Id : (byte)0,
+                ResolveRule = this.ResolveRule,
+                TransformFlags = this.TransformFlags
             });
-            context.Baker.AddComponent(clipEntity, new OnClipActiveEntityLinkAttachTag());
-            
+
+            context.Baker.AddComponent(clipEntity, new EntityLinkAttachState
+            {
+                ResolvedTarget = Unity.Entities.Entity.Null,
+                CapturedPreviousParent = Unity.Entities.Entity.Null,
+                CapturedOriginalTransform = LocalTransform.Identity,
+                IsAttached = false
+            });
+
             base.Bake(clipEntity, context);
         }
     }

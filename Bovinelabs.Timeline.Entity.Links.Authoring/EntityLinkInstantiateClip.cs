@@ -1,35 +1,36 @@
-/* com.bovinelabs.timeline.entity.links/Authoring/EntityLinkInstantiateClip.cs */
-using BovineLabs.Core.Keys;
-using BovineLabs.EntityLinks;
 using BovineLabs.Timeline.Authoring;
-using BovineLabs.Timeline.Instantiate;
+using Bovinelabs.Timeline.Entity.Links.Data;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Timeline;
 
-namespace BovineLabs.Timeline.EntityLinks.Authoring
+namespace Bovinelabs.Timeline.Entity.Links.Authoring
 {
     public sealed class EntityLinkInstantiateClip : DOTSClip, ITimelineClipAsset
     {
-        public GameObject prefab;
-        [K(nameof(EntityLinkKeys))] public byte linkKey;
-        public ResolveRule resolveRule = ResolveRule.Parent | ResolveRule.Owner;
-        public ParentTransformConfig parentTransformConfig = ParentTransformConfig.SetParent | ParentTransformConfig.SetTransform;
+        public GameObject Prefab;
+        public EntityLinkTagSchema LinkSchema;
+        public ResolveRule ResolveRule = ResolveRule.Parent;
+        public AttachmentTransformFlags TransformFlags = AttachmentTransformFlags.SetParent | AttachmentTransformFlags.SetTransform;
 
-        public override double duration => 1;
         public ClipCaps clipCaps => ClipCaps.None;
+        public override double duration => 1;
 
-        public override void Bake(Entity clipEntity, BakingContext context)
+        public override void Bake(Unity.Entities.Entity clipEntity, BakingContext context)
         {
+            if (context.Binding != null && context.Binding.Target != Unity.Entities.Entity.Null)
+            {
+                context.Baker.AddTransformUsageFlags(context.Binding.Target, TransformUsageFlags.Dynamic);
+            }
+
             context.Baker.AddComponent(clipEntity, new EntityLinkInstantiateConfig
             {
-                Prefab = context.Baker.GetEntity(prefab, TransformUsageFlags.None),
-                Key = linkKey,
-                ResolveRule = resolveRule,
-                TransformConfig = parentTransformConfig
+                Prefab = context.Baker.GetEntity(this.Prefab, TransformUsageFlags.Dynamic),
+                LinkKey = this.LinkSchema != null ? this.LinkSchema.Id : (byte)0,
+                ResolveRule = this.ResolveRule,
+                TransformFlags = this.TransformFlags
             });
-            context.Baker.AddComponent(clipEntity, new OnClipActiveEntityLinkInstantiateTag());
-            
+
             base.Bake(clipEntity, context);
         }
     }
