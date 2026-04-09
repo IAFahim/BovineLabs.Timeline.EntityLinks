@@ -35,7 +35,6 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 TransformConfig = parentTransformConfig
             });
 
-            // Add the trigger tag
             context.Baker.AddComponent<OnClipActiveEntityLinkInstantiateTag>(clipEntity);
 
             base.Bake(clipEntity, context);
