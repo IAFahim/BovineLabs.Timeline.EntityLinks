@@ -19,7 +19,8 @@ namespace Bovinelabs.Timeline.EntityLinks
             bool hadPtm,
             LocalToWorld originWorld,
             LocalToWorld destinationWorld,
-            AttachmentTransformFlags flags)
+            AttachmentTransformFlags flags
+        )
         {
             var result = new TopologyResult
             {

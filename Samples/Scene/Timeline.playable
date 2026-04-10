@@ -1,60 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8496909281035791960
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b4c0ba4ba9c4b3b8ea2a309feac1b9f, type: 3}
-  m_Name: EntityLinkInstantiateClip
-  m_EditorClassIdentifier: Bovinelabs.Timeline.EntityLinks.Authoring::Bovinelabs.Timeline.EntityLinks.Authoring.EntityLinkInstantiateClip
-  Prefab: {fileID: 7912966824055113308, guid: 951de27fae0f19b47887d9c49647f931, type: 3}
-  LinkSchema: {fileID: 11400000, guid: 396eae5308942e2c5a06a0975df02c43, type: 2}
-  ResolveRule: 1
-  TransformFlags: 255
---- !u!114 &-1683009330099079295
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e37e953766f64893b4f199a5ff9dcda6, type: 3}
-  m_Name: EntityLinkInstantiateClip
-  m_EditorClassIdentifier: Bovinelabs.Timeline.EntityLinks.Authoring::BovineLabs.Timeline.EntityLinks.Authoring.EntityLinkInstantiateClip
-  prefab: {fileID: 7912966824055113308, guid: 951de27fae0f19b47887d9c49647f931, type: 3}
-  linkKey: 1
-  resolveRule: 9
-  parentTransformConfig: 255
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bfda56da833e2384a9677cd3c976a436, type: 3}
-  m_Name: Timeline
-  m_EditorClassIdentifier: Unity.Timeline::UnityEngine.Timeline.TimelineAsset
-  m_Version: 0
-  m_Tracks:
-  - {fileID: 4461326593067107879}
-  - {fileID: 4699248473348086526}
-  m_FixedDuration: 0
-  m_EditorSettings:
-    m_Framerate: 60
-    m_ScenePreview: 1
-  m_DurationMode: 0
-  m_MarkerTrack: {fileID: 0}
---- !u!114 &4461326593067107879
+--- !u!114 &-4795396796215624092
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -78,10 +24,10 @@ MonoBehaviour:
   - m_Version: 1
     m_Start: 0
     m_ClipIn: 0
-    m_Asset: {fileID: 4659624901364342596}
+    m_Asset: {fileID: -3052121975491020321}
     m_Duration: 1
     m_TimeScale: 1
-    m_ParentTrack: {fileID: 4461326593067107879}
+    m_ParentTrack: {fileID: -4795396796215624092}
     m_EaseInDuration: 0
     m_EaseOutDuration: 0
     m_BlendInDuration: 0
@@ -147,7 +93,7 @@ MonoBehaviour:
   m_Markers:
     m_Objects: []
   resetOnDeactivate: 1
---- !u!114 &4659624901364342596
+--- !u!114 &-3052121975491020321
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -162,7 +108,7 @@ MonoBehaviour:
   LinkSchema: {fileID: 11400000, guid: e171bfe1e0df23080a0cd0d1e36236d2, type: 2}
   ResolveRule: 1
   TransformFlags: 255
---- !u!114 &4699248473348086526
+--- !u!114 &-1683009330099079295
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -171,90 +117,34 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 699ebe62a9ab47af9c28510a97c405c7, type: 3}
-  m_Name: Entity Link Instantiate Track
-  m_EditorClassIdentifier: Bovinelabs.Timeline.EntityLinks.Authoring::Bovinelabs.Timeline.EntityLinks.Authoring.EntityLinkInstantiateTrack
-  m_Version: 3
-  m_AnimClip: {fileID: 0}
-  m_Locked: 0
-  m_Muted: 1
-  m_CustomPlayableFullTypename: 
-  m_Curves: {fileID: 0}
-  m_Parent: {fileID: 11400000}
-  m_Children: []
-  m_Clips:
-  - m_Version: 1
-    m_Start: 0.5666666666666667
-    m_ClipIn: 0
-    m_Asset: {fileID: -8496909281035791960}
-    m_Duration: 1
-    m_TimeScale: 1
-    m_ParentTrack: {fileID: 4699248473348086526}
-    m_EaseInDuration: 0
-    m_EaseOutDuration: 0
-    m_BlendInDuration: 0
-    m_BlendOutDuration: 0
-    m_MixInCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    m_MixOutCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    m_BlendInCurveMode: 0
-    m_BlendOutCurveMode: 0
-    m_ExposedParameterNames: []
-    m_AnimationCurves: {fileID: 0}
-    m_Recordable: 0
-    m_PostExtrapolationMode: 0
-    m_PreExtrapolationMode: 0
-    m_PostExtrapolationTime: 0
-    m_PreExtrapolationTime: 0
-    m_DisplayName: EntityLinkInstantiateClip
-  m_Markers:
-    m_Objects: []
-  resetOnDeactivate: 1
+  m_Script: {fileID: 11500000, guid: e37e953766f64893b4f199a5ff9dcda6, type: 3}
+  m_Name: EntityLinkInstantiateClip
+  m_EditorClassIdentifier: Bovinelabs.Timeline.EntityLinks.Authoring::BovineLabs.Timeline.EntityLinks.Authoring.EntityLinkInstantiateClip
+  prefab: {fileID: 7912966824055113308, guid: 951de27fae0f19b47887d9c49647f931, type: 3}
+  linkKey: 1
+  resolveRule: 9
+  parentTransformConfig: 255
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfda56da833e2384a9677cd3c976a436, type: 3}
+  m_Name: Timeline
+  m_EditorClassIdentifier: Unity.Timeline::UnityEngine.Timeline.TimelineAsset
+  m_Version: 0
+  m_Tracks:
+  - {fileID: -4795396796215624092}
+  m_FixedDuration: 0
+  m_EditorSettings:
+    m_Framerate: 60
+    m_ScenePreview: 1
+  m_DurationMode: 0
+  m_MarkerTrack: {fileID: 0}
 --- !u!114 &7593822311261907031
 MonoBehaviour:
   m_ObjectHideFlags: 1

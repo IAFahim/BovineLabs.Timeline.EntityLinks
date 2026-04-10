@@ -18,12 +18,6 @@ namespace Bovinelabs.Timeline.EntityLinks.Debug
     public partial struct EntityLinkDebugSystem : ISystem
     {
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
-            state.RequireForUpdate<DrawSystem.Singleton>();
-        }
-
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var renderer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer();

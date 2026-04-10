@@ -13,9 +13,20 @@ namespace Bovinelabs.Timeline.EntityLinks
         [ReadOnly] public ComponentLookup<Targets> Targets;
         [ReadOnly] public BufferLookup<EntityLookupStoreData> Stores;
 
-        public void Evaluate(Entity origin, byte key, ResolveRule rule, byte accentLimit, out Entity result)
+        public void Evaluate(
+            in Entity origin,
+            in byte key,
+            in ResolveRule rule,
+            in byte accentLimit,
+            out Entity result
+        )
         {
-            if (TryEvaluateNode(Targets[origin].Target, key, rule, ResolveRule.SelfTarget, out result)) return;
+            if (rule.HasAny(ResolveRule.SelfTarget))
+            {
+                var target = Targets[origin].Target;
+                if (TryEvaluateNode(target, key, rule, ResolveRule.SelfTarget, out result)) return;
+            }
+
             if (TryEvaluateAscent(origin, key, rule, ResolveRule.Parent, accentLimit, out result)) return;
             if (TryEvaluateContext(origin, key, rule, out result)) return;
             TryEvaluateParentContext(origin, key, rule, ResolveRule.ParentsTarget, out result);
@@ -37,8 +48,14 @@ namespace Bovinelabs.Timeline.EntityLinks
             return false;
         }
 
-        private bool TryEvaluateAscent(Entity node, byte key, ResolveRule rule, ResolveRule flag, byte accentLimit,
-            out Entity result)
+        private bool TryEvaluateAscent(
+            in Entity node,
+            in byte key,
+            in ResolveRule rule,
+            in ResolveRule flag,
+            byte accentLimit,
+            out Entity result
+        )
         {
             result = Entity.Null;
 
@@ -55,7 +72,12 @@ namespace Bovinelabs.Timeline.EntityLinks
             return false;
         }
 
-        private bool TryEvaluateContext(Entity node, byte key, ResolveRule rule, out Entity result)
+        private bool TryEvaluateContext(
+            in Entity node,
+            in byte key,
+            in ResolveRule rule,
+            out Entity result
+        )
         {
             result = Entity.Null;
 
