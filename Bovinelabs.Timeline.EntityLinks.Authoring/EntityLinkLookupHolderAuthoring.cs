@@ -22,10 +22,11 @@ namespace Bovinelabs.Timeline.EntityLinks.Authoring
 
                 foreach (var entityTagsMonoBehavior in holderAuthoring.links)
                     buffer.Add(new EntityLookupStoreData
-                    {
-                        Tag = entityTagsMonoBehavior.tag.Id,
-                        Value = GetEntity(entityTagsMonoBehavior, TransformUsageFlags.None)
-                    });
+                        {
+                            Tag = entityTagsMonoBehavior.tag.Id,
+                            Value = GetEntity(entityTagsMonoBehavior, TransformUsageFlags.None)
+                        }
+                    );
             }
         }
     }
