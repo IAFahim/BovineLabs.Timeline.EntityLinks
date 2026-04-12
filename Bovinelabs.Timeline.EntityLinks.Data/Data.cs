@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Bovinelabs.Timeline.EntityLinks.Data
+namespace BovineLabs.Timeline.EntityLinks.Data
 {
     public struct EntityLookupStoreData : IBufferElementData
     {
@@ -17,6 +17,18 @@ namespace Bovinelabs.Timeline.EntityLinks.Data
         None = 0,
         SetParent = 1 << 0,
         SetTransform = 1 << 1
+    }
+
+    [Flags]
+    public enum ResolveRule : byte
+    {
+        None = 0,
+        Parent = 1 << 0,
+        ParentsTarget = 1 << 1,
+        SelfTarget = 1 << 2,
+        Owner = 1 << 3,
+        Source = 1 << 4,
+        Target = 1 << 5
     }
 
     public struct EntityLinkAttachConfig : IComponentData
@@ -44,23 +56,11 @@ namespace Bovinelabs.Timeline.EntityLinks.Data
         public AttachmentTransformFlags TransformFlags;
     }
 
-    [Flags]
-    public enum ResolveRule : byte
-    {
-        None = 0,
-        Parent = 1 << 0,
-        ParentsTarget = 1 << 1,
-        SelfTarget = 1 << 2,
-        Owner = 1 << 3,
-        Source = 1 << 4,
-        Target = 1 << 5
-    }
-
     public static class ResolveRuleExtensions
     {
         public static bool HasAny(this ResolveRule rule, in ResolveRule flags)
         {
-            return (rule & flags) != ResolveRule.None;
+            return (rule & flags) != 0;
         }
     }
 
@@ -68,7 +68,7 @@ namespace Bovinelabs.Timeline.EntityLinks.Data
     {
         public static bool HasAny(this AttachmentTransformFlags configuration, in AttachmentTransformFlags flags)
         {
-            return (configuration & flags) != AttachmentTransformFlags.None;
+            return (configuration & flags) != 0;
         }
     }
 }

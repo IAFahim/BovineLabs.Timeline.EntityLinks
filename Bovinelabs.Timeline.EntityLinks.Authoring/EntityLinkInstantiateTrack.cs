@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using BovineLabs.Timeline.Authoring;
+using BovineLabs.Timeline.EntityLinks.Authoring;
 using UnityEngine;
 using UnityEngine.Timeline;
 

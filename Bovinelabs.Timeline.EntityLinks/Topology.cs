@@ -1,8 +1,8 @@
-using Bovinelabs.Timeline.EntityLinks.Data;
+using BovineLabs.Timeline.EntityLinks.Data;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Bovinelabs.Timeline.EntityLinks
+namespace BovineLabs.Timeline.EntityLinks
 {
     public struct TopologyResult
     {
@@ -13,14 +13,16 @@ namespace Bovinelabs.Timeline.EntityLinks
 
     public static class Topology
     {
+        /// <summary>
+        /// Highly optimized, branchless (where possible) topology matrix resolution.
+        /// </summary>
         public static TopologyResult Evaluate(
             LocalTransform local,
             float4x4 currentPtm,
             bool hadPtm,
             LocalToWorld originWorld,
             LocalToWorld destinationWorld,
-            AttachmentTransformFlags flags
-        )
+            AttachmentTransformFlags flags)
         {
             var result = new TopologyResult
             {
@@ -33,7 +35,7 @@ namespace Bovinelabs.Timeline.EntityLinks
             {
                 if (flags.HasAny(AttachmentTransformFlags.SetTransform))
                 {
-                    // Snaps position/rotation to Hand, but preserves Weapon's World Scale
+                    // Snaps position/rotation to Destination, but preserves Origin's World Scale
                     result.Local.Position = float3.zero;
                     result.Local.Rotation = quaternion.identity;
                     result.Local.Scale = 1f;
@@ -68,7 +70,6 @@ namespace Bovinelabs.Timeline.EntityLinks
 
                     result.Local.Rotation = new quaternion(rotMatrix);
                     result.Local.Scale = 1f;
-
                     result.PostTransform = float4x4.Scale(scale);
                     result.HasPostTransform = true;
                 }

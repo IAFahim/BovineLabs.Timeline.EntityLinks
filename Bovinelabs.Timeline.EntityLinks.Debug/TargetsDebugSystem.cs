@@ -1,4 +1,7 @@
+#if UNITY_EDITOR || BL_DEBUG
 using BovineLabs.Core;
+using BovineLabs.Core.Extensions;
+using BovineLabs.Core.Iterators;
 using BovineLabs.Quill;
 using BovineLabs.Reaction.Data.Core;
 using Unity.Burst;
@@ -8,28 +11,37 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Bovinelabs.Timeline.EntityLinks.Debug
+namespace BovineLabs.Timeline.EntityLinks.Debug
 {
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ServerSimulation |
                        WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.Editor)]
     [UpdateInGroup(typeof(DebugSystemGroup))]
     public partial struct TargetsDebugSystem : ISystem
     {
+        private UnsafeComponentLookup<LocalToWorld> ltwLookup;
+        private UnsafeComponentLookup<TargetsCustom> targetsCustomLookup;
+
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            this.ltwLookup = state.GetUnsafeComponentLookup<LocalToWorld>(true);
+            this.targetsCustomLookup = state.GetUnsafeComponentLookup<TargetsCustom>(true);
+            state.RequireForUpdate<DrawSystem.Singleton>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            this.ltwLookup.Update(ref state);
+            this.targetsCustomLookup.Update(ref state);
+
             var drawer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer();
 
             state.Dependency = new DrawTargetsJob
             {
                 Drawer = drawer,
-                LtwLookup = SystemAPI.GetComponentLookup<LocalToWorld>(true),
-                TargetsCustomLookup = SystemAPI.GetComponentLookup<TargetsCustom>(true)
+                LtwLookup = this.ltwLookup,
+                TargetsCustomLookup = this.targetsCustomLookup
             }.Schedule(state.Dependency);
         }
 
@@ -37,8 +49,8 @@ namespace Bovinelabs.Timeline.EntityLinks.Debug
         private partial struct DrawTargetsJob : IJobEntity
         {
             public Drawer Drawer;
-            [ReadOnly] public ComponentLookup<LocalToWorld> LtwLookup;
-            [ReadOnly] public ComponentLookup<TargetsCustom> TargetsCustomLookup;
+            [ReadOnly] public UnsafeComponentLookup<LocalToWorld> LtwLookup;
+            [ReadOnly] public UnsafeComponentLookup<TargetsCustom> TargetsCustomLookup;
 
             private static readonly Color ColorOwner = new(0.2f, 0.8f, 1.0f);
             private static readonly Color ColorSource = new(1.0f, 0.6f, 0.1f);
@@ -50,18 +62,18 @@ namespace Bovinelabs.Timeline.EntityLinks.Debug
             {
                 var nullCount = 0;
 
-                DrawTether(entity, ltw.Position, targets.Owner, "Owner", ColorOwner, 0, ref nullCount);
-                DrawTether(entity, ltw.Position, targets.Source, "Source", ColorSource, 1, ref nullCount);
-                DrawTether(entity, ltw.Position, targets.Target, "Target", ColorTarget, 2, ref nullCount);
+                this.DrawTether(entity, ltw.Position, targets.Owner, "Owner", ColorOwner, 0, ref nullCount);
+                this.DrawTether(entity, ltw.Position, targets.Source, "Source", ColorSource, 1, ref nullCount);
+                this.DrawTether(entity, ltw.Position, targets.Target, "Target", ColorTarget, 2, ref nullCount);
 
-                if (TargetsCustomLookup.TryGetComponent(entity, out var custom))
+                if (this.TargetsCustomLookup.TryGetComponent(entity, out var custom))
                 {
-                    DrawTether(entity, ltw.Position, custom.Target0, "Custom0", ColorCustom0, 3, ref nullCount);
-                    DrawTether(entity, ltw.Position, custom.Target1, "Custom1", ColorCustom1, 4, ref nullCount);
+                    this.DrawTether(entity, ltw.Position, custom.Target0, "Custom0", ColorCustom0, 3, ref nullCount);
+                    this.DrawTether(entity, ltw.Position, custom.Target1, "Custom1", ColorCustom1, 4, ref nullCount);
                 }
             }
 
-            private void DrawTether(Entity self, float3 selfPos, Entity target, FixedString32Bytes label, Color color,
+            private void DrawTether(Entity self, float3 selfPos, Entity target, Unity.Collections.FixedString32Bytes label, Color color,
                 int index, ref int nullCount)
             {
                 if (target == Entity.Null)
@@ -69,15 +81,15 @@ namespace Bovinelabs.Timeline.EntityLinks.Debug
                     var dimColor = color;
                     dimColor.a = 0.4f;
                     var nullPos = selfPos + new float3(0, 0.8f + nullCount * 0.25f, 0);
-                    Drawer.Text32(nullPos, $"[No {label}]", dimColor, 10f);
+                    this.Drawer.Text32(nullPos, $"[No {label}]", dimColor, 10f);
                     nullCount++;
                     return;
                 }
 
-                if (!LtwLookup.TryGetComponent(target, out var targetLtw))
+                if (!this.LtwLookup.TryGetComponent(target, out var targetLtw))
                 {
                     var errPos = selfPos + new float3(0, 0.8f + nullCount * 0.25f, 0);
-                    Drawer.Text32(errPos, $"[{label} has no Transform]", Color.red, 10f);
+                    this.Drawer.Text32(errPos, $"[{label} has no Transform]", Color.red, 10f);
                     nullCount++;
                     return;
                 }
@@ -86,14 +98,14 @@ namespace Bovinelabs.Timeline.EntityLinks.Debug
 
                 if (self == target || math.all(selfPos == targetPos))
                 {
-                    DrawSelfLoop(selfPos, label, color, index);
+                    this.DrawSelfLoop(selfPos, label, color, index);
                     return;
                 }
 
-                DrawCurvedTether(selfPos, targetPos, label, color, index);
+                this.DrawCurvedTether(selfPos, targetPos, label, color, index);
             }
 
-            private void DrawCurvedTether(float3 start, float3 end, FixedString32Bytes label, Color color, int index)
+            private void DrawCurvedTether(float3 start, float3 end, Unity.Collections.FixedString32Bytes label, Color color, int index)
             {
                 var distance = math.distance(start, end);
                 var mid = (start + end) * 0.5f;
@@ -114,16 +126,16 @@ namespace Bovinelabs.Timeline.EntityLinks.Debug
                     prev = current;
                 }
 
-                Drawer.Lines(lines.AsArray(), color);
+                this.Drawer.Lines(lines.AsArray(), color);
 
                 var dir = math.normalize(end - lines[lines.Length - 4]);
-                Drawer.Arrow(end - dir * 0.1f, dir * 0.25f, color);
+                this.Drawer.Arrow(end - dir * 0.1f, dir * 0.25f, color);
 
-                Drawer.Text32(mid + new float3(0, 0.2f, 0), label, color, 11f);
+                this.Drawer.Text32(mid + new float3(0, 0.2f, 0), label, color, 11f);
                 lines.Dispose();
             }
 
-            private void DrawSelfLoop(float3 pos, FixedString32Bytes label, Color color, int index)
+            private void DrawSelfLoop(float3 pos, Unity.Collections.FixedString32Bytes label, Color color, int index)
             {
                 var height = 1.0f + index * 0.3f;
                 var spread = 0.5f + index * 0.1f;
@@ -152,15 +164,16 @@ namespace Bovinelabs.Timeline.EntityLinks.Debug
                     prev = current;
                 }
 
-                Drawer.Lines(lines.AsArray(), color);
+                this.Drawer.Lines(lines.AsArray(), color);
 
                 var dir = math.normalize(p3 - lines[lines.Length - 4]);
-                Drawer.Arrow(pos - dir * 0.05f, dir * 0.2f, color);
+                this.Drawer.Arrow(pos - dir * 0.05f, dir * 0.2f, color);
 
                 var topPos = pos + new float3(0, height + 0.1f, 0);
-                Drawer.Text32(topPos, label, color, 10f);
+                this.Drawer.Text32(topPos, label, color, 10f);
                 lines.Dispose();
             }
         }
     }
 }
+#endif

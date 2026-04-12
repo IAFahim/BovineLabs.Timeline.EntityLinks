@@ -1,10 +1,12 @@
+using BovineLabs.Core.Authoring;
 using BovineLabs.Timeline.Authoring;
-using Bovinelabs.Timeline.EntityLinks.Data;
+using Bovinelabs.Timeline.EntityLinks.Authoring;
+using BovineLabs.Timeline.EntityLinks.Data;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Timeline;
 
-namespace Bovinelabs.Timeline.EntityLinks.Authoring
+namespace BovineLabs.Timeline.EntityLinks.Authoring
 {
     public sealed class EntityLinkInstantiateClip : DOTSClip, ITimelineClipAsset
     {
@@ -12,8 +14,7 @@ namespace Bovinelabs.Timeline.EntityLinks.Authoring
         public EntityLinkTagSchema LinkSchema;
         public ResolveRule ResolveRule = ResolveRule.Parent;
 
-        public AttachmentTransformFlags TransformFlags =
-            AttachmentTransformFlags.SetParent | AttachmentTransformFlags.SetTransform;
+        public AttachmentTransformFlags TransformFlags = AttachmentTransformFlags.SetParent | AttachmentTransformFlags.SetTransform;
 
         public override double duration => 1;
 
@@ -22,7 +23,9 @@ namespace Bovinelabs.Timeline.EntityLinks.Authoring
         public override void Bake(Entity clipEntity, BakingContext context)
         {
             if (context.Binding != null && context.Binding.Target != Entity.Null)
+            {
                 context.Baker.AddTransformUsageFlags(context.Binding.Target, TransformUsageFlags.Dynamic);
+            }
 
             context.Baker.AddComponent(clipEntity, new EntityLinkInstantiateConfig
             {
