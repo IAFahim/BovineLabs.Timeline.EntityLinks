@@ -24,12 +24,12 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         {
             if (context.Binding != null && context.Binding.Target != Entity.Null)
             {
-                context.Baker.AddTransformUsageFlags(context.Binding.Target, TransformUsageFlags.Dynamic);
+                context.Baker.AddTransformUsageFlags(context.Binding.Target, TransformUsageFlags.None);
             }
 
             context.Baker.AddComponent(clipEntity, new EntityLinkInstantiateConfig
             {
-                Prefab = context.Baker.GetEntity(Prefab, TransformUsageFlags.Dynamic),
+                Prefab = context.Baker.GetEntity(Prefab, TransformUsageFlags.None),
                 LinkKey = LinkSchema != null ? LinkSchema.Id : (byte)0,
                 ResolveRule = ResolveRule,
                 TransformFlags = TransformFlags

@@ -20,6 +20,19 @@ MonoBehaviour:
   RotationMode: 2
   RotationOffset: {x: 0, y: 0, z: 0}
   ParentMode: 0
+--- !u!114 &-5361612831215185647
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c61869e665cb4717bef70f263ad5e857, type: 3}
+  m_Name: PlayerInputCancelWindowClip
+  m_EditorClassIdentifier: Bovinelabs.Timeline.PlayerInputs.Authoring::Bovinelabs.Timeline.PlayerInputs.Authoring.PlayerInputCancelWindowClip
+  AllowedActions: []
 --- !u!114 &-4795396796215624092
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -144,6 +157,99 @@ MonoBehaviour:
   linkKey: 1
   resolveRule: 9
   parentTransformConfig: 255
+--- !u!114 &-1417571896936943283
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 816838b6ee5447fb8bb17200f57ecf42, type: 3}
+  m_Name: Player Input Condition Invoker Track
+  m_EditorClassIdentifier: Bovinelabs.Timeline.PlayerInputs.Authoring::Bovinelabs.Timeline.PlayerInputs.Authoring.PlayerInputConditionInvokerTrack
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 0
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips:
+  - m_Version: 1
+    m_Start: 0
+    m_ClipIn: 0
+    m_Asset: {fileID: 6743508924353745065}
+    m_Duration: 11.733333333333333
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: -1417571896936943283}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: PlayerInputConditionInvokerClip
+  m_Markers:
+    m_Objects: []
+  resetOnDeactivate: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -162,6 +268,8 @@ MonoBehaviour:
   - {fileID: 1533976475158955954}
   - {fileID: 2713462620551172859}
   - {fileID: 5063639177002891229}
+  - {fileID: -1417571896936943283}
+  - {fileID: 8329585062532576727}
   m_FixedDuration: 0
   m_EditorSettings:
     m_Framerate: 60
@@ -291,7 +399,7 @@ MonoBehaviour:
   m_Version: 3
   m_AnimClip: {fileID: 0}
   m_Locked: 0
-  m_Muted: 0
+  m_Muted: 1
   m_CustomPlayableFullTypename: 
   m_Curves: {fileID: 0}
   m_Parent: {fileID: 11400000}
@@ -462,6 +570,22 @@ MonoBehaviour:
   m_Markers:
     m_Objects: []
   resetOnDeactivate: 1
+--- !u!114 &6743508924353745065
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4193bef2695d41f9a39e9cf052512d79, type: 3}
+  m_Name: PlayerInputConditionInvokerClip
+  m_EditorClassIdentifier: Bovinelabs.Timeline.PlayerInputs.Authoring::Bovinelabs.Timeline.PlayerInputs.Authoring.PlayerInputConditionInvokerClip
+  action: {fileID: -2099379676528639254, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  phase: 1
+  condition: {fileID: 11400000, guid: 0a741c9d2622a8d2aaf56ac5e1ac9d5d, type: 2}
+  value: 1
 --- !u!114 &7430370972191515585
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -474,9 +598,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f25f743515c24bdc97f2d87042322b7b, type: 3}
   m_Name: PlayerInputBufferClearClip
   m_EditorClassIdentifier: Bovinelabs.Timeline.PlayerInputs.Authoring::Bovinelabs.Timeline.PlayerInputs.Authoring.PlayerInputBufferClearClip
-  ClearAll: 1
-  ActionToClear:
-    Action: {fileID: -2099379676528639254, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  actionsToClear: []
 --- !u!114 &7593822311261907031
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -491,3 +613,96 @@ MonoBehaviour:
   m_EditorClassIdentifier: Bovinelabs.Timeline.EntityLinks.Authoring::BovineLabs.Timeline.EntityLinks.Authoring.EntityLinkAttachClip
   linkKey: 6
   resolveRule: 9
+--- !u!114 &8329585062532576727
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5db6c625b954865a5942fe042f0a5d6, type: 3}
+  m_Name: Player Input Cancel Window Track
+  m_EditorClassIdentifier: Bovinelabs.Timeline.PlayerInputs.Authoring::Bovinelabs.Timeline.PlayerInputs.Authoring.PlayerInputCancelWindowTrack
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 1
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips:
+  - m_Version: 1
+    m_Start: 0
+    m_ClipIn: 0
+    m_Asset: {fileID: -5361612831215185647}
+    m_Duration: 2.0833333333333335
+    m_TimeScale: 1
+    m_ParentTrack: {fileID: 8329585062532576727}
+    m_EaseInDuration: 0
+    m_EaseOutDuration: 0
+    m_BlendInDuration: 0
+    m_BlendOutDuration: 0
+    m_MixInCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_MixOutCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_BlendInCurveMode: 0
+    m_BlendOutCurveMode: 0
+    m_ExposedParameterNames: []
+    m_AnimationCurves: {fileID: 0}
+    m_Recordable: 0
+    m_PostExtrapolationMode: 0
+    m_PreExtrapolationMode: 0
+    m_PostExtrapolationTime: 0
+    m_PreExtrapolationTime: 0
+    m_DisplayName: PlayerInputCancelWindowClip
+  m_Markers:
+    m_Objects: []
+  resetOnDeactivate: 1

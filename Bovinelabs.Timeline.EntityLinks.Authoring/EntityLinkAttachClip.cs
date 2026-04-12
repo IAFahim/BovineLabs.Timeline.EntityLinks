@@ -23,7 +23,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         {
             if (context.Binding != null && context.Binding.Target != Entity.Null)
             {
-                context.Baker.AddTransformUsageFlags(context.Binding.Target, TransformUsageFlags.Dynamic);
+                context.Baker.AddTransformUsageFlags(context.Binding.Target, TransformUsageFlags.None);
             }
 
             context.Baker.AddComponent(clipEntity, new EntityLinkAttachConfig
