@@ -476,8 +476,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Bovinelabs.Timeline.PlayerInputs.Authoring::Bovinelabs.Timeline.PlayerInputs.Authoring.PlayerInputBufferClearClip
   ClearAll: 1
   ActionToClear:
-    Value: 0
-    Action: {fileID: 0}
+    Action: {fileID: -2099379676528639254, guid: 052faaac586de48259a63d0c4782560b, type: 3}
 --- !u!114 &7593822311261907031
 MonoBehaviour:
   m_ObjectHideFlags: 1
