@@ -12,18 +12,34 @@ namespace Bovinelabs.Timeline.EntityLinks.Authoring
 
         private void OnValidate()
         {
-            links = GetComponentsInChildren<EntityTagAuthoring>(true)
-                .Where(entityTagAuthoring => entityTagAuthoring.GetComponentInParent<EntityLinkLookupHolderAuthoring>() == this)
+            links = GetComponentsInChildren<EntityTagAuthoring>(false)
+                .Where(entityTagAuthoring =>
+                {
+                    if (entityTagAuthoring.gameObject == gameObject) return false;
+
+                    var parent = entityTagAuthoring.transform.parent;
+                    while (parent != null)
+                    {
+                        if (parent.TryGetComponent(out EntityLinkLookupHolderAuthoring holder))
+                            return holder == this;
+                        parent = parent.parent;
+                    }
+                    return false;
+                })
                 .ToArray();
         }
 
         public class EntityLinkLookupHolderBaker : Baker<EntityLinkLookupHolderAuthoring>
         {
-            public override void Bake(EntityLinkLookupHolderAuthoring authoring)
+            public override void Bake(EntityLinkLookupHolderAuthoring holderAuthoring)
             {
                 var buffer = AddBuffer<EntityLookupStoreData>(GetEntity(TransformUsageFlags.None));
-                foreach (var entityTagAuthoring in authoring.links)
+
+                foreach (var entityTagAuthoring in holderAuthoring.links)
                 {
+                    // Safety net: never bake our own tag
+                    if (entityTagAuthoring.gameObject == holderAuthoring.gameObject) continue;
+
                     var entityLinkTagSchema = entityTagAuthoring.entityLinkTagSchema;
                     if (entityLinkTagSchema == null)
                     {
