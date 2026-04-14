@@ -1,15 +1,23 @@
 using System;
 using BovineLabs.Core.ObjectManagement;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
 
 namespace BovineLabs.Timeline.EntityLinks.Data
 {
-    public struct EntityLookupStoreData : IBufferElementData
+    public struct EntityLookup
     {
         public byte Tag;
         public Entity Value;
+    }
+
+    public struct EntityLookUpBlob : IComponentData
+    {
+        public BlobAssetReference<EntityLookupBlobData> Blob;
+    }
+
+    public struct EntityLookupBlobData
+    {
+        public BlobArray<EntityLookup> Entries;
     }
 
     [Flags]

@@ -24,20 +24,20 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            this.worldSpaceLookup = state.GetUnsafeComponentLookup<LocalToWorld>(true);
+            worldSpaceLookup = state.GetUnsafeComponentLookup<LocalToWorld>(true);
             state.RequireForUpdate<DrawSystem.Singleton>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            this.worldSpaceLookup.Update(ref state);
+            worldSpaceLookup.Update(ref state);
             var renderer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer();
-            
+
             state.Dependency = new RenderTransition
             {
                 Renderer = renderer,
-                WorldSpace = this.worldSpaceLookup
+                WorldSpace = worldSpaceLookup
             }.Schedule(state.Dependency);
         }
 
@@ -48,15 +48,14 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
             public Drawer Renderer;
             [ReadOnly] public UnsafeComponentLookup<LocalToWorld> WorldSpace;
 
-            private void Execute(in EntityLinkAttachState state, in EntityLinkAttachConfig config, in TrackBinding binding)
+            private void Execute(in EntityLinkAttachState state, in EntityLinkAttachConfig config,
+                in TrackBinding binding)
             {
                 if (!state.IsAttached || state.ResolvedTarget == Entity.Null) return;
 
-                if (this.WorldSpace.TryGetComponent(binding.Value, out var origin) &&
-                    this.WorldSpace.TryGetComponent(state.ResolvedTarget, out var destination))
-                {
-                    this.RenderManifold(origin.Position, destination.Position, config.LinkKey);
-                }
+                if (WorldSpace.TryGetComponent(binding.Value, out var origin) &&
+                    WorldSpace.TryGetComponent(state.ResolvedTarget, out var destination))
+                    RenderManifold(origin.Position, destination.Position, config.LinkKey);
             }
 
             private void RenderManifold(float3 origin, float3 destination, byte domain)
@@ -81,8 +80,8 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
                     node = vertex;
                 }
 
-                this.Renderer.Lines(path.AsArray(), tint);
-                this.Renderer.Point(destination, 0.05f, tint);
+                Renderer.Lines(path.AsArray(), tint);
+                Renderer.Point(destination, 0.05f, tint);
 
                 path.Dispose();
             }

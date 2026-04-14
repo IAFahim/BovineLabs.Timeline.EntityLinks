@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using BovineLabs.Core.Keys;
 using BovineLabs.Core.Settings;
-using Unity.Collections;
+using Bovinelabs.Timeline.EntityLinks.Data;
 using UnityEngine;
 
 namespace Bovinelabs.Timeline.EntityLinks.Authoring
@@ -12,7 +12,7 @@ namespace Bovinelabs.Timeline.EntityLinks.Authoring
     {
         [SerializeField] private EntityLinkTagSchema[] entityLinkTagSchemas = Array.Empty<EntityLinkTagSchema>();
         public IReadOnlyList<EntityLinkTagSchema> EntityLinkTagSchemas => entityLinkTagSchemas;
-        public static byte GetIndex(EntityLinkTagSchema inputActionReference) => NameToKey((FixedString32Bytes)inputActionReference.name);
+
         public override IEnumerable<NameValue<byte>> Keys
         {
             get
@@ -23,6 +23,7 @@ namespace Bovinelabs.Timeline.EntityLinks.Authoring
                     var actionName = entityLinkTagSchema != null
                         ? entityLinkTagSchema.name
                         : $"[Unassigned Action ID: {index}]";
+                    entityLinkTagSchema.id = index;
 
                     yield return new NameValue<byte>(actionName, index);
                 }

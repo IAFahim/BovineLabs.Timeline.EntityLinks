@@ -1,4 +1,5 @@
 using BovineLabs.Core.Authoring;
+using Bovinelabs.Timeline.EntityLinks.Data;
 using UnityEngine;
 
 namespace Bovinelabs.Timeline.EntityLinks.Authoring

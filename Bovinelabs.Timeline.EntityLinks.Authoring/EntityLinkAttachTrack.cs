@@ -3,7 +3,6 @@ using System.ComponentModel;
 using BovineLabs.Reaction.Authoring.Core;
 using BovineLabs.Timeline.Authoring;
 using BovineLabs.Timeline.EntityLinks.Authoring;
-using UnityEngine;
 using UnityEngine.Timeline;
 
 namespace Bovinelabs.Timeline.EntityLinks.Authoring

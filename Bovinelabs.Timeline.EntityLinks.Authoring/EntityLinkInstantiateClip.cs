@@ -1,11 +1,8 @@
-using BovineLabs.Core.Authoring;
 using BovineLabs.Core.Authoring.ObjectManagement;
 using BovineLabs.Timeline.Authoring;
-using Bovinelabs.Timeline.EntityLinks.Authoring;
+using Bovinelabs.Timeline.EntityLinks.Data;
 using BovineLabs.Timeline.EntityLinks.Data;
 using Unity.Entities;
-using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.Timeline;
 
 namespace BovineLabs.Timeline.EntityLinks.Authoring
@@ -22,14 +19,12 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         public override void Bake(Entity clipEntity, BakingContext context)
         {
             if (context.Binding != null && context.Binding.Target != Entity.Null)
-            {
                 context.Baker.AddTransformUsageFlags(context.Binding.Target, TransformUsageFlags.None);
-            }
 
             context.Baker.AddComponent(clipEntity, new EntityLinkInstantiateConfig
             {
                 Prefab = objectDefinition,
-                LinkKey = EntityLinkSettings.GetIndex(entityLinkTagSchema),
+                LinkKey = entityLinkTagSchema.id,
                 ResolveRule = resolveRule
             });
 
