@@ -41,11 +41,9 @@ namespace BovineLabs.Timeline.EntityLinks.Systems
     [WithDisabled(typeof(ClipActivePrevious))]
     internal partial struct ApplyEntityEssenceJob : IJobEntity
     {
-        [NativeDisableParallelForRestriction]
-        public UnsafeComponentLookup<Targets> TargetLookup;
+        [NativeDisableParallelForRestriction] public UnsafeComponentLookup<Targets> TargetLookup;
 
-        [ReadOnly]
-        public UnsafeComponentLookup<EntityEssenceRefComponent> EntityTargetRefComponentLookup;
+        [ReadOnly] public UnsafeComponentLookup<EntityEssenceRefComponent> EntityTargetRefComponentLookup;
 
         private void Execute(in TrackBinding binding)
         {

@@ -1,5 +1,6 @@
+using BovineLabs.Core.Authoring.EntityCommands;
 using BovineLabs.Essence.Authoring;
-using BovineLabs.Timeline.EntityLinks.Data;
+using BovineLabs.Timeline.EntityLinks.Data.Builders;
 using Unity.Entities;
 using UnityEngine;
 
@@ -14,12 +15,10 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
             public override void Bake(EssenceRefComponentAuthoring authoring)
             {
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
-                AddComponent(entity,
-                    new EntityEssenceRefComponent
-                    {
-                        EssenceEntity = GetEntity(authoring.statAuthoring.gameObject, TransformUsageFlags.None)
-                    }
-                );
+                var commands = new BakerCommands(this, entity);
+                var builder = new EntityEssenceRefBuilder()
+                    .WithEssenceEntity(GetEntity(authoring.statAuthoring.gameObject, TransformUsageFlags.None));
+                builder.ApplyTo(ref commands);
             }
         }
     }

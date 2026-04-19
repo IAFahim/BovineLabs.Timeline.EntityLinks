@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using BovineLabs.Core.Authoring.EntityCommands;
 using BovineLabs.Timeline.EntityLinks.Data;
+using BovineLabs.Timeline.EntityLinks.Data.Builders;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
@@ -53,10 +55,11 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                     Allocator.Persistent);
                 builder.Dispose();
 
-                AddBlobAsset(ref blobRef, out _);
-
                 var entity = GetEntity(TransformUsageFlags.None);
-                AddComponent(entity, new EntityLookupBlobComponent { Blob = blobRef });
+                var commands = new BakerCommands(this, entity);
+                var registryBuilder = new EntityLookupRegistryBuilder()
+                    .WithBlob(blobRef);
+                registryBuilder.ApplyTo(ref commands);
             }
         }
     }
