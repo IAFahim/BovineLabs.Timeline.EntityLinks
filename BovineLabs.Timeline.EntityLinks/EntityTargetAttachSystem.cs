@@ -28,11 +28,11 @@ namespace BovineLabs.Timeline.EntityLinks.Systems
             _entityTargetLookup.Update(ref state);
             _entityTargetRefComponentLookup.Update(ref state);
 
-            new ApplyEntityEssenceJob
+            state.Dependency = new ApplyEntityEssenceJob
             {
                 TargetLookup = _entityTargetLookup,
                 EntityTargetRefComponentLookup = _entityTargetRefComponentLookup
-            }.ScheduleParallel();
+            }.Schedule(state.Dependency);
         }
     }
 
@@ -41,8 +41,7 @@ namespace BovineLabs.Timeline.EntityLinks.Systems
     [WithDisabled(typeof(ClipActivePrevious))]
     internal partial struct ApplyEntityEssenceJob : IJobEntity
     {
-        [NativeDisableParallelForRestriction] public UnsafeComponentLookup<Targets> TargetLookup;
-
+        public UnsafeComponentLookup<Targets> TargetLookup;
         [ReadOnly] public UnsafeComponentLookup<EntityEssenceRefComponent> EntityTargetRefComponentLookup;
 
         private void Execute(in TrackBinding binding)
