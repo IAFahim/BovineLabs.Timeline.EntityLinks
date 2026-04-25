@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using BovineLabs.Core.Extensions;
 using BovineLabs.Core.Iterators;
 using BovineLabs.Reaction.Data.Core;
@@ -28,6 +27,7 @@ namespace BovineLabs.Timeline.EntityLinks.Systems
             state.Dependency = new ApplyEntityEssenceJob
             {
                 TargetLookup = _entityTargetLookup,
+                EssenceRefLookup = SystemAPI.GetComponentLookup<EntityEssenceRef>(true),
             }.Schedule(state.Dependency);
         }
     }
@@ -38,25 +38,17 @@ namespace BovineLabs.Timeline.EntityLinks.Systems
     internal partial struct ApplyEntityEssenceJob : IJobEntity
     {
         public UnsafeComponentLookup<Targets> TargetLookup;
+        [ReadOnly] public ComponentLookup<EntityEssenceRef> EssenceRefLookup;
 
         private void Execute(in TrackBinding binding)
         {
-            UpdateTargetEntity(binding.Value);
-        }
+            var bindingEntity = binding.Value;
+            if (!EssenceRefLookup.TryGetComponent(bindingEntity, out var essenceRef)) return;
+            if (essenceRef.Value == Entity.Null) return;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void UpdateTargetEntity(in Entity bindingEntity)
-        {
             var targets = TargetLookup[bindingEntity];
-            var resolvedTarget = ResolveTargetEntity(targets);
-            targets.Target = resolvedTarget;
+            targets.Target = essenceRef.Value;
             TargetLookup[bindingEntity] = targets;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Entity ResolveTargetEntity(in Targets targets)
-        {
-            return Entity.Null;
         }
     }
 }

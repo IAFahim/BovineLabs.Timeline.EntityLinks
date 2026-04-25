@@ -3,6 +3,7 @@ using BovineLabs.Core;
 using BovineLabs.Core.Extensions;
 using BovineLabs.Core.Iterators;
 using BovineLabs.Quill;
+using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Data;
 using Unity.Burst;
 using Unity.Collections;
@@ -47,8 +48,21 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
             public Drawer Renderer;
             [ReadOnly] public UnsafeComponentLookup<LocalToWorld> WorldSpace;
 
-            private void Execute()
+            private void Execute(Entity entity, in TrackBinding binding, in Targets targets)
             {
+                if (!WorldSpace.TryGetComponent(binding.Value, out var bindingLtw)) return;
+
+                var origin = bindingLtw.Position;
+
+                if (targets.Target != Entity.Null && WorldSpace.TryGetComponent(targets.Target, out var targetLtw))
+                {
+                    RenderManifold(origin, targetLtw.Position, 0);
+                }
+
+                if (targets.Source != Entity.Null && WorldSpace.TryGetComponent(targets.Source, out var sourceLtw))
+                {
+                    RenderManifold(origin, sourceLtw.Position, 1);
+                }
             }
 
             private void RenderManifold(float3 origin, float3 destination, byte domain)
