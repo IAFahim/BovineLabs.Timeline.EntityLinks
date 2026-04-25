@@ -18,6 +18,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 var commands = new BakerCommands(this, entity);
                 var builder = new EntityEssenceRefBuilder()
                     .WithEssenceEntity(GetEntity(authoring.statAuthoring.gameObject, TransformUsageFlags.None));
+                builder.ApplyTo(ref commands);
             }
         }
     }
