@@ -9,22 +9,19 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
     [SettingsGroup("EntityLinks")]
     public class EntityLinkSettings : KSettingsBase<EntityLinkSettings, byte>
     {
-        [SerializeField] private EntityLinkTagSchema[] entityLinkTagSchemas = Array.Empty<EntityLinkTagSchema>();
-        public IReadOnlyList<EntityLinkTagSchema> EntityLinkTagSchemas => entityLinkTagSchemas;
+        [SerializeField] 
+        private EntityLinkTagSchema[] entityLinkTagSchemas = Array.Empty<EntityLinkTagSchema>();
+        
+        public IReadOnlyList<EntityLinkTagSchema> EntityLinkTagSchemas => this.entityLinkTagSchemas;
 
         public override IEnumerable<NameValue<byte>> Keys
         {
             get
             {
-                for (byte index = 0; index < entityLinkTagSchemas.Length; index++)
+                foreach (var schema in this.entityLinkTagSchemas)
                 {
-                    var entityLinkTagSchema = entityLinkTagSchemas[index];
-                    var actionName = entityLinkTagSchema != null
-                        ? entityLinkTagSchema.name
-                        : $"[Unassigned Action ID: {index}]";
-                    entityLinkTagSchema.id = index;
-
-                    yield return new NameValue<byte>(actionName, index);
+                    if (schema == null) continue;
+                    yield return new NameValue<byte>(schema.name, schema.Id);
                 }
             }
         }

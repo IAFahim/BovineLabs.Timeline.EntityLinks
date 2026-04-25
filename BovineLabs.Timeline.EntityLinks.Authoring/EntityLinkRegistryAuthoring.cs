@@ -13,7 +13,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
         private void OnValidate()
         {
-            entityTagAuthorings = GetComponentsInChildren<EntityTagAuthoring>(allowInactive);
+            this.entityTagAuthorings = GetComponentsInChildren<EntityTagAuthoring>(this.allowInactive);
         }
 
         public class Baker : Baker<EntityLinkRegistryAuthoring>
@@ -44,16 +44,16 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                         continue;
                     }
 
-                    if (!tagsSet.Add(entityLinkTagSchema.id))
+                    if (!tagsSet.Add(entityLinkTagSchema.Id))
                     {
                         Debug.LogError(
-                            $"Duplicate schema tag '{entityLinkTagSchema.name}' ({entityLinkTagSchema.id}) on {entityTagAuthoring.name} (holder: {authoring.gameObject.name})",
+                            $"Duplicate schema tag '{entityLinkTagSchema.name}' ({entityLinkTagSchema.Id}) on {entityTagAuthoring.name} (holder: {authoring.gameObject.name})",
                             entityTagAuthoring.gameObject
                         );
                         continue;
                     }
 
-                    validLinks.Add((entityLinkTagSchema.id, entityTagAuthoring));
+                    validLinks.Add((entityLinkTagSchema.Id, entityTagAuthoring));
                     DependsOn(entityTagAuthoring);
                 }
 
