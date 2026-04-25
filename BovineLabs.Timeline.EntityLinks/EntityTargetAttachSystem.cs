@@ -19,18 +19,11 @@ namespace BovineLabs.Timeline.EntityLinks.Systems
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
-
             state.Dependency = new ApplyEntityEssenceJob
             {
-                TargetsLookup = state.GetUnsafeComponentLookup<Targets>(true),
-                EssenceRefLookup = SystemAPI.GetComponentLookup<EntityEssenceRef>(true),
-                ECB = ecb
+                TargetsLookup = state.GetUnsafeComponentLookup<Targets>(),
+                EssenceRefLookup = SystemAPI.GetComponentLookup<EntityEssenceRef>(true)
             }.Schedule(state.Dependency);
-
-            state.Dependency.Complete();
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
         }
     }
 
@@ -39,9 +32,8 @@ namespace BovineLabs.Timeline.EntityLinks.Systems
     [WithDisabled(typeof(ClipActivePrevious))]
     internal partial struct ApplyEntityEssenceJob : IJobEntity
     {
-        [ReadOnly] public UnsafeComponentLookup<Targets> TargetsLookup;
+        public UnsafeComponentLookup<Targets> TargetsLookup;
         [ReadOnly] public ComponentLookup<EntityEssenceRef> EssenceRefLookup;
-        public EntityCommandBuffer ECB;
 
         private void Execute(in TrackBinding binding)
         {
@@ -52,7 +44,7 @@ namespace BovineLabs.Timeline.EntityLinks.Systems
             if (!TargetsLookup.HasComponent(bindingEntity)) return;
             var targets = TargetsLookup[bindingEntity];
             targets.Target = essenceRef.Value;
-            ECB.SetComponent(bindingEntity, targets);
+            TargetsLookup[bindingEntity] = targets;
         }
     }
 }
