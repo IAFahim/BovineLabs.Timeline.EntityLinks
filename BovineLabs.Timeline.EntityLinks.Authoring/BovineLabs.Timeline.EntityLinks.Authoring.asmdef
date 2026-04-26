@@ -19,6 +19,7 @@
     "Unity.Transforms",
     "BovineLabs.Timeline.Authoring",
     "Unity.Timeline",
+    "BovineLabs.Reaction.Data",
     "BovineLabs.Reaction.Authoring",
     "BovineLabs.Essence.Authoring"
   ],
