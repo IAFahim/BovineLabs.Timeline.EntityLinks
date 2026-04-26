@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace BovineLabs.Timeline.EntityLinks.Authoring
 {
-    [AutoRef(nameof(SourceSettings), "entityLinkTagSchemas", nameof(SourceSchema), "Schemas/EntityLinks")]
-    [CreateAssetMenu(menuName = "BovineLabs/EntityLinks/Tag")]
+    [AutoRef(nameof(SourceSettings), "sourceSchemas", nameof(SourceSchema), "Schemas/Source")]
+    [CreateAssetMenu(menuName = "BovineLabs/EntityLinks/SourceSchema")]
     public class SourceSchema : ScriptableObject, IUID
     {
         [SerializeField]
