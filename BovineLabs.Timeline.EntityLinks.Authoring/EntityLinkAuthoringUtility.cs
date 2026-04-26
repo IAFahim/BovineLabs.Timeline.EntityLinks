@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using BovineLabs.Timeline.Authoring;
 using BovineLabs.Timeline.EntityLinks.Data;
-using Unity.Collections;
-using Unity.Entities;
 using UnityEngine;
 
 namespace BovineLabs.Timeline.EntityLinks.Authoring
@@ -70,24 +68,6 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
             }
 
             return false;
-        }
-
-        public static BlobAssetReference<EntityLinkBlob> CreateBlob(IReadOnlyList<Entry> entries)
-        {
-            using var builder = new BlobBuilder(Allocator.Temp);
-            ref var root = ref builder.ConstructRoot<EntityLinkBlob>();
-            var elements = builder.Allocate(ref root.Elements, entries.Count);
-
-            for (var i = 0; i < entries.Count; i++)
-            {
-                elements[i] = new EntityLinkBlobElement
-                {
-                    Key = entries[i].Key,
-                    Index = (ushort)i
-                };
-            }
-
-            return builder.CreateBlobAssetReference<EntityLinkBlob>(Allocator.Persistent);
         }
 
         public readonly struct Entry

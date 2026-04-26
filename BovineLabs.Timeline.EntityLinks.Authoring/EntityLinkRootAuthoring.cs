@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using BovineLabs.Timeline.EntityLinks.Data;
 using Unity.Entities;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace BovineLabs.Timeline.EntityLinks.Authoring
 {
@@ -20,57 +17,20 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         {
             public EntityLinkSchema Schema;
             public EntityLinkSourceAuthoring Target;
-            public bool TryGetTarget(out EntityLinkSourceAuthoring target) { target = Target; return target!= null; }
-        }
 
-        private enum LinkOrigin : byte { Auto, Manual }
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            if (!AutoCollectAnchors) return;
-            EditorApplication.delayCall += () =>
+            public bool TryGetTarget(out EntityLinkSourceAuthoring target)
             {
-                if (this == null) return;
-                AutoPopulateLinks();
-            };
-        }
-
-        private void AutoPopulateLinks()
-        {
-            var sources = GetComponentsInChildren<EntityLinkSourceAuthoring>(true);
-            var newLinks = new List<Link>();
-            var seen = new HashSet<EntityLinkSchema>();
-
-            foreach (var src in sources)
-            {
-                if (!src.TryGetRoot(out var root) || root!= this)
-                {
-                    src.Root = this;
-                    EditorUtility.SetDirty(src);
-                }
-
-                if (src.Schema!= null && seen.Add(src.Schema))
-                    newLinks.Add(new Link { Schema = src.Schema, Target = src });
-
-                if (src.Aliases!= null)
-                {
-                    foreach (var alias in src.Aliases)
-                    {
-                        if (alias!= null && seen.Add(alias))
-                            newLinks.Add(new Link { Schema = alias, Target = src });
-                    }
-                }
-            }
-
-            if (newLinks.Count!= Links.Length)
-            {
-                Undo.RecordObject(this, "Auto Populate Entity Links");
-                Links = newLinks.ToArray();
-                EditorUtility.SetDirty(this);
+                target = this.Target;
+                return target != null;
             }
         }
-#endif
+
+        private enum LinkOrigin : byte
+        {
+            Auto,
+            Manual
+        }
+
         private sealed class Baker : Baker<EntityLinkRootAuthoring>
         {
             public override void Bake(EntityLinkRootAuthoring authoring)
@@ -88,30 +48,19 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 var entries = new List<EntityLinkAuthoringUtility.Entry>(links.Values);
                 entries.Sort((a, b) => a.Key.CompareTo(b.Key));
 
-                if (entries.Count > ushort.MaxValue)
-                {
-                    Debug.LogError($"EntityLinkRoot '{authoring.name}' has too many links.");
-                    return;
-                }
 
-                var blob = EntityLinkAuthoringUtility.CreateBlob(entries);
-                this.AddBlobAsset(ref blob, out _);
-
-                this.AddComponent<EntityLinkRoot>(rootEntity);
-                this.AddComponent(rootEntity, new EntityLinkMap { Blob = blob });
-
-                var values = this.AddBuffer<EntityLinkValue>(rootEntity);
+                var buffer = this.AddBuffer<EntityLink>(rootEntity);
                 foreach (var entry in entries)
                 {
-                    values.Add(new EntityLinkValue
+                    buffer.Add(new EntityLink
                     {
-                        Value = this.GetEntity(entry.Target, TransformUsageFlags.None)
+                        Key = entry.Key,
+                        Target = this.GetEntity(entry.Target, TransformUsageFlags.None)
                     });
                 }
             }
 
-            private void CollectSources(EntityLinkRootAuthoring root,
-                Dictionary<ushort, EntityLinkAuthoringUtility.Entry> links)
+            private void CollectSources(EntityLinkRootAuthoring root, Dictionary<ushort, EntityLinkAuthoringUtility.Entry> links)
             {
                 var sources = root.GetComponentsInChildren<EntityLinkSourceAuthoring>(true);
                 var schemas = new List<EntityLinkSchema>(4);
@@ -141,8 +90,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 }
             }
 
-            private void CollectManualLinks(EntityLinkRootAuthoring root,
-                Dictionary<ushort, EntityLinkAuthoringUtility.Entry> links)
+            private void CollectManualLinks(EntityLinkRootAuthoring root, Dictionary<ushort, EntityLinkAuthoringUtility.Entry> links)
             {
                 foreach (var link in root.Links)
                 {
@@ -190,8 +138,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
                 if (targetRoot != root)
                 {
-                    Debug.LogError(
-                        $"EntityLink '{name}' on '{root.name}' targets '{target.name}' under different root '{targetRoot.name}'.");
+                    Debug.LogError($"EntityLink '{name}' on '{root.name}' targets '{target.name}' under different root '{targetRoot.name}'.");
                     return;
                 }
 

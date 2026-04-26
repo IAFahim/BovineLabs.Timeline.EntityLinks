@@ -1,6 +1,5 @@
 using BovineLabs.Core.ObjectManagement;
 using BovineLabs.Core.PropertyDrawers;
-using BovineLabs.Timeline.EntityLinks.Data;
 using UnityEngine;
 
 namespace BovineLabs.Timeline.EntityLinks.Authoring
@@ -35,14 +34,6 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
             return schema == null ? (ushort)0 : schema.id;
         }
 
-        public static implicit operator ulong(EntityLinkSchema schema)
-        {
-            return schema == null ? 0UL : schema.id;
-        }
 
-        public static implicit operator EntityLinkKey(EntityLinkSchema schema)
-        {
-            return new EntityLinkKey(schema == null ? (ushort)0 : schema.id);
-        }
     }
 }

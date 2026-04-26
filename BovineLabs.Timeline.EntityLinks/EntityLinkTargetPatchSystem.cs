@@ -19,17 +19,14 @@ namespace BovineLabs.Timeline.EntityLinks
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged);
-
             state.Dependency = new PatchJob
             {
-                TargetsLookup = SystemAPI.GetComponentLookup<Targets>(),
-                TargetsCustoms = SystemAPI.GetComponentLookup<TargetsCustom>(),
+                TargetsLookup = SystemAPI.GetComponentLookup<Targets>(true),
+                TargetsCustoms = SystemAPI.GetComponentLookup<TargetsCustom>(true),
                 Sources = SystemAPI.GetComponentLookup<EntityLinkSource>(true),
-                Maps = SystemAPI.GetComponentLookup<EntityLinkMap>(true),
-                Values = SystemAPI.GetBufferLookup<EntityLinkValue>(true),
-                ECB = ecb.AsParallelWriter()
+                Links = SystemAPI.GetBufferLookup<EntityLink>(true),
+                ECB = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
+                    .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
             }.ScheduleParallel(state.Dependency);
         }
 
@@ -38,12 +35,11 @@ namespace BovineLabs.Timeline.EntityLinks
         [WithDisabled(typeof(ClipActivePrevious))]
         private partial struct PatchJob : IJobEntity
         {
-            public ComponentLookup<Targets> TargetsLookup;
-            public ComponentLookup<TargetsCustom> TargetsCustoms;
+            [ReadOnly] public ComponentLookup<Targets> TargetsLookup;
+            [ReadOnly] public ComponentLookup<TargetsCustom> TargetsCustoms;
 
             [ReadOnly] public ComponentLookup<EntityLinkSource> Sources;
-            [ReadOnly] public ComponentLookup<EntityLinkMap> Maps;
-            [ReadOnly] public BufferLookup<EntityLinkValue> Values;
+            [ReadOnly] public BufferLookup<EntityLink> Links;
 
             public EntityCommandBuffer.ParallelWriter ECB;
 
@@ -66,8 +62,7 @@ namespace BovineLabs.Timeline.EntityLinks
                     patch,
                     this.TargetsCustoms,
                     this.Sources,
-                    this.Maps,
-                    this.Values);
+                    this.Links);
 
                 if (resolved == Entity.Null)
                 {
@@ -78,17 +73,17 @@ namespace BovineLabs.Timeline.EntityLinks
                 {
                     case Target.Owner:
                         targets.Owner = resolved;
-                        this.TargetsLookup[bindingEntity] = targets;
+                        this.ECB.SetComponent(sortKey, bindingEntity, targets);
                         break;
 
                     case Target.Source:
                         targets.Source = resolved;
-                        this.TargetsLookup[bindingEntity] = targets;
+                        this.ECB.SetComponent(sortKey, bindingEntity, targets);
                         break;
 
                     case Target.Target:
                         targets.Target = resolved;
-                        this.TargetsLookup[bindingEntity] = targets;
+                        this.ECB.SetComponent(sortKey, bindingEntity, targets);
                         break;
 
                     case Target.Custom0:
@@ -106,7 +101,7 @@ namespace BovineLabs.Timeline.EntityLinks
                 if (this.TargetsCustoms.TryGetComponent(entity, out var custom))
                 {
                     custom.Target0 = target;
-                    this.TargetsCustoms[entity] = custom;
+                    this.ECB.SetComponent(sortKey, entity, custom);
                     return;
                 }
 
@@ -118,7 +113,7 @@ namespace BovineLabs.Timeline.EntityLinks
                 if (this.TargetsCustoms.TryGetComponent(entity, out var custom))
                 {
                     custom.Target1 = target;
-                    this.TargetsCustoms[entity] = custom;
+                    this.ECB.SetComponent(sortKey, entity, custom);
                     return;
                 }
 

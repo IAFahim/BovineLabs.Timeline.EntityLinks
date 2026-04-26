@@ -7,6 +7,7 @@ using UnityEngine;
 namespace BovineLabs.Timeline.EntityLinks.Authoring
 {
     [DisallowMultipleComponent]
+    [RequireComponent(typeof(TransformAuthoring))]
     public sealed class EntityLinkSourceAuthoring : MonoBehaviour
     {
         public EntityLinkRootAuthoring Root;
