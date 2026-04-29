@@ -49,19 +49,25 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         {
             linked = null;
 
-            foreach (var link in root.Links)
-                if (link.Schema == schema && link.Target != null)
+            // Check manually registered links first (schema lives on the source now)
+            foreach (var source in root.Links)
+            {
+                if (source != null && source.HasSchema(schema))
                 {
-                    linked = link.Target;
+                    linked = source;
                     return true;
                 }
+            }
 
+            // Fall back to scanning all children
             foreach (var source in root.GetComponentsInChildren<EntityLinkSourceAuthoring>(true))
+            {
                 if (source.HasSchema(schema) && source.TryGetRoot(out var sourceRoot) && sourceRoot == root)
                 {
                     linked = source;
                     return true;
                 }
+            }
 
             return false;
         }
@@ -70,13 +76,11 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         {
             public readonly ushort Key;
             public readonly Component Target;
-            public readonly bool IsManual;
 
-            public Entry(ushort key, Component target, bool isManual = false)
+            public Entry(ushort key, Component target)
             {
                 Key = key;
                 Target = target;
-                IsManual = isManual;
             }
         }
     }

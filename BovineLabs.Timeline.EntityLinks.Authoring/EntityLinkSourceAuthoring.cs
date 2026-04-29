@@ -12,8 +12,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
     public sealed class EntityLinkSourceAuthoring : MonoBehaviour
     {
         public EntityLinkRootAuthoring Root;
-        public EntityLinkSchema Schema;
-        public EntityLinkSchema[] Aliases = Array.Empty<EntityLinkSchema>();
+        public EntityLinkSchema[] Schemas = Array.Empty<EntityLinkSchema>();
 
         private void OnValidate()
         {
@@ -39,31 +38,19 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         {
             if (schema == null) return false;
 
-            if (Schema == schema) return true;
-
-            if (Aliases == null) return false;
-
-            foreach (var alias in Aliases)
-                if (alias == schema)
-                    return true;
+            foreach (var s in Schemas)
+                if (s == schema) return true;
 
             return false;
         }
 
         internal void AddSchemas(List<EntityLinkSchema> schemas)
         {
-            if (Schema != null) schemas.Add(Schema);
-
-            if (Aliases == null) return;
-
-            foreach (var alias in Aliases)
+            foreach (var s in Schemas)
             {
-                if (alias == null) continue;
-
-                schemas.Add(alias);
+                if (s != null) schemas.Add(s);
             }
         }
-
 
         private sealed class Baker : Baker<EntityLinkSourceAuthoring>
         {
