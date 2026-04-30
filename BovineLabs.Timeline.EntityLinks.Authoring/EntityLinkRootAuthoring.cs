@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using BovineLabs.Core.Iterators;
 using BovineLabs.Timeline.EntityLinks.Data;
 using Unity.Entities;
 using UnityEngine;
@@ -56,8 +55,6 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 entries.Sort((a, b) => a.Key.CompareTo(b.Key));
 
                 var entryBuffer = AddBuffer<EntityLinkEntry>(rootEntity);
-                var buffer = AddBuffer<EntityLink>(rootEntity);
-                buffer.InitializeHashMap<EntityLink, ushort, Entity>();
 
                 foreach (var entry in entries)
                 {

@@ -1,4 +1,3 @@
-using BovineLabs.Core.Iterators;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Data;
 using BovineLabs.Timeline.EntityLinks.Data;
@@ -25,7 +24,7 @@ namespace BovineLabs.Timeline.EntityLinks
                 TargetsLookup = SystemAPI.GetComponentLookup<Targets>(true),
                 TargetsCustoms = SystemAPI.GetComponentLookup<TargetsCustom>(true),
                 Sources = SystemAPI.GetComponentLookup<EntityLinkSource>(true),
-                Links = SystemAPI.GetBufferLookup<EntityLink>(false)
+                Entries = SystemAPI.GetBufferLookup<EntityLinkEntry>(false)
             }.Schedule(state.Dependency);
         }
 
@@ -38,7 +37,7 @@ namespace BovineLabs.Timeline.EntityLinks
             [ReadOnly] public ComponentLookup<TargetsCustom> TargetsCustoms;
             [ReadOnly] public ComponentLookup<EntityLinkSource> Sources;
 
-            public BufferLookup<EntityLink> Links;
+            public BufferLookup<EntityLinkEntry> Entries;
 
             private void Execute(Entity clipEntity, in TrackBinding binding, in EntityLinkMutate mutate)
             {
@@ -56,28 +55,59 @@ namespace BovineLabs.Timeline.EntityLinks
                 if (!EntityLinkResolver.TryResolveRoot(rootCandidate, Sources, out var root))
                     return;
 
-                if (!Links.TryGetBuffer(root, out var buffer))
+                if (!Entries.TryGetBuffer(root, out var buffer))
                     return;
 
-                var map = buffer.AsHashMap<EntityLink, ushort, Entity>();
-                
                 switch (mutate.Mode)
                 {
                     case EntityLinkMutateMode.Assign:
-                        map[mutate.LinkKey] = targets.Get(mutate.NewTarget, bindingEntity, TargetsCustoms);
+                    {
+                        var newTarget = targets.Get(mutate.NewTarget, bindingEntity, TargetsCustoms);
+                        var found = false;
+                        for (int i = 0; i < buffer.Length; i++)
+                        {
+                            if (buffer[i].Key == mutate.LinkKey)
+                            {
+                                buffer[i] = new EntityLinkEntry { Key = mutate.LinkKey, Target = newTarget };
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found)
+                            buffer.Add(new EntityLinkEntry { Key = mutate.LinkKey, Target = newTarget });
                         break;
+                    }
 
                     case EntityLinkMutateMode.Swap:
-                        var hasA = map.TryGetValue(mutate.LinkKey, out var targetA);
-                        var hasB = map.TryGetValue(mutate.SwapKey, out var targetB);
-
-                        if (hasA) map[mutate.SwapKey] = targetA; else map.Remove(mutate.SwapKey);
-                        if (hasB) map[mutate.LinkKey] = targetB; else map.Remove(mutate.LinkKey);
+                    {
+                        var valA = Entity.Null;
+                        var valB = Entity.Null;
+                        var hasA = false;
+                        var hasB = false;
+                        for (int i = 0; i < buffer.Length; i++)
+                        {
+                            if (buffer[i].Key == mutate.LinkKey) { valA = buffer[i].Target; hasA = true; }
+                            if (buffer[i].Key == mutate.SwapKey) { valB = buffer[i].Target; hasB = true; }
+                        }
+                        for (int i = 0; i < buffer.Length; i++)
+                        {
+                            if (buffer[i].Key == mutate.LinkKey)
+                                buffer[i] = new EntityLinkEntry { Key = mutate.LinkKey, Target = valB };
+                            if (buffer[i].Key == mutate.SwapKey)
+                                buffer[i] = new EntityLinkEntry { Key = mutate.SwapKey, Target = valA };
+                        }
                         break;
+                    }
 
                     case EntityLinkMutateMode.Remove:
-                        map.Remove(mutate.LinkKey);
+                    {
+                        for (int i = buffer.Length - 1; i >= 0; i--)
+                        {
+                            if (buffer[i].Key == mutate.LinkKey)
+                                buffer.RemoveAtSwapBack(i);
+                        }
                         break;
+                    }
                 }
             }
         }

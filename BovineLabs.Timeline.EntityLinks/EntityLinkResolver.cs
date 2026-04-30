@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using BovineLabs.Core.Iterators;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.EntityLinks.Data;
 using Unity.Entities;
@@ -25,11 +24,18 @@ namespace BovineLabs.Timeline.EntityLinks
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryResolveFromRoot(Entity root, ushort key, in BufferLookup<EntityLink> links, out Entity result)
+        public static bool TryResolveFromRoot(Entity root, ushort key, in BufferLookup<EntityLinkEntry> entries, out Entity result)
         {
-            if (root != Entity.Null && key != 0 && links.TryGetBuffer(root, out var buffer))
+            if (root != Entity.Null && key != 0 && entries.TryGetBuffer(root, out var buffer))
             {
-                return buffer.AsHashMap<EntityLink, ushort, Entity>().TryGetValue(key, out result);
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    if (buffer[i].Key == key)
+                    {
+                        result = buffer[i].Target;
+                        return true;
+                    }
+                }
             }
 
             result = Entity.Null;
@@ -41,7 +47,7 @@ namespace BovineLabs.Timeline.EntityLinks
             Entity entity,
             ushort key,
             in ComponentLookup<EntityLinkSource> sources,
-            in BufferLookup<EntityLink> links,
+            in BufferLookup<EntityLinkEntry> entries,
             out Entity result)
         {
             if (!TryResolveRoot(entity, sources, out var root))
@@ -50,7 +56,7 @@ namespace BovineLabs.Timeline.EntityLinks
                 return false;
             }
 
-            return TryResolveFromRoot(root, key, links, out result);
+            return TryResolveFromRoot(root, key, entries, out result);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -61,7 +67,7 @@ namespace BovineLabs.Timeline.EntityLinks
             ushort key,
             in ComponentLookup<TargetsCustom> targetsCustoms,
             in ComponentLookup<EntityLinkSource> sources,
-            in BufferLookup<EntityLink> links,
+            in BufferLookup<EntityLinkEntry> entries,
             out Entity result)
         {
             var rootCandidate = targets.Get(readRootFrom, self, targetsCustoms);
@@ -71,7 +77,7 @@ namespace BovineLabs.Timeline.EntityLinks
                 return false;
             }
 
-            return TryResolve(rootCandidate, key, sources, links, out result);
+            return TryResolve(rootCandidate, key, sources, entries, out result);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -81,9 +87,9 @@ namespace BovineLabs.Timeline.EntityLinks
             in EntityLinkTargetPatch patch,
             in ComponentLookup<TargetsCustom> targetsCustoms,
             in ComponentLookup<EntityLinkSource> sources,
-            in BufferLookup<EntityLink> links)
+            in BufferLookup<EntityLinkEntry> entries)
         {
-            if (TryResolve(self, targets, patch.ReadRootFrom, patch.LinkKey, targetsCustoms, sources, links,
+            if (TryResolve(self, targets, patch.ReadRootFrom, patch.LinkKey, targetsCustoms, sources, entries,
                     out var linked)) return linked;
 
             return targets.Get(patch.Fallback, self, targetsCustoms);

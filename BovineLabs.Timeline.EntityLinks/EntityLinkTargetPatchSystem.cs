@@ -24,7 +24,7 @@ namespace BovineLabs.Timeline.EntityLinks
                 TargetsLookup = SystemAPI.GetComponentLookup<Targets>(true),
                 TargetsCustoms = SystemAPI.GetComponentLookup<TargetsCustom>(true),
                 Sources = SystemAPI.GetComponentLookup<EntityLinkSource>(true),
-                Links = SystemAPI.GetBufferLookup<EntityLink>(true),
+                Links = SystemAPI.GetBufferLookup<EntityLinkEntry>(true),
                 ECB = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
                     .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
             }.ScheduleParallel(state.Dependency);
@@ -39,7 +39,7 @@ namespace BovineLabs.Timeline.EntityLinks
             [ReadOnly] public ComponentLookup<TargetsCustom> TargetsCustoms;
 
             [ReadOnly] public ComponentLookup<EntityLinkSource> Sources;
-            [ReadOnly] public BufferLookup<EntityLink> Links;
+            [ReadOnly] public BufferLookup<EntityLinkEntry> Links;
 
             public EntityCommandBuffer.ParallelWriter ECB;
 

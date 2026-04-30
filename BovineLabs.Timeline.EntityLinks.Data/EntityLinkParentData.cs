@@ -21,5 +21,6 @@ namespace BovineLabs.Timeline.EntityLinks.Data
         public Entity Target;
         public Entity PreviousParent;
         public bool HadParent;
+        public bool ParentApplied;
     }
 }

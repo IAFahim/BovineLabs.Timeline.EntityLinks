@@ -38,10 +38,11 @@ namespace BovineLabs.Timeline.EntityLinks
                 TargetsLookup = SystemAPI.GetComponentLookup<Targets>(true),
                 TargetsCustoms = SystemAPI.GetComponentLookup<TargetsCustom>(true),
                 Sources = SystemAPI.GetComponentLookup<EntityLinkSource>(true),
-                Links = SystemAPI.GetBufferLookup<EntityLink>(true),
+                Links = SystemAPI.GetBufferLookup<EntityLinkEntry>(true),
                 LtwLookup = _ltwLookup,
                 ChildLookup = _childLookup,
                 ParentLookup = SystemAPI.GetComponentLookup<Parent>(true),
+                LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true),
                 ECB = ecb
             }.ScheduleParallel(state.Dependency);
 
@@ -61,10 +62,11 @@ namespace BovineLabs.Timeline.EntityLinks
             [ReadOnly] public ComponentLookup<Targets> TargetsLookup;
             [ReadOnly] public ComponentLookup<TargetsCustom> TargetsCustoms;
             [ReadOnly] public ComponentLookup<EntityLinkSource> Sources;
-            [ReadOnly] public BufferLookup<EntityLink> Links;
+            [ReadOnly] public BufferLookup<EntityLinkEntry> Links;
             [ReadOnly] public ComponentLookup<LocalToWorld> LtwLookup;
             [ReadOnly] public BufferLookup<Child> ChildLookup;
             [ReadOnly] public ComponentLookup<Parent> ParentLookup;
+            [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
 
             public EntityCommandBuffer.ParallelWriter ECB;
 
@@ -107,9 +109,13 @@ namespace BovineLabs.Timeline.EntityLinks
                 {
                     var childs = ChildLookup.HasBuffer(resolvedParent) ? ChildLookup[resolvedParent] : default;
                     TransformUtility.SetupParent(ref commands, resolvedParent, entityToParent, parentLtw, childTransform, childs);
+                    state.ParentApplied = true;
                 }
 
-                ECB.SetComponent(sortKey, entityToParent, childTransform);
+                if (LocalTransformLookup.HasComponent(entityToParent))
+                    ECB.SetComponent(sortKey, entityToParent, childTransform);
+                else
+                    ECB.AddComponent(sortKey, entityToParent, childTransform);
             }
         }
 
@@ -126,9 +132,9 @@ namespace BovineLabs.Timeline.EntityLinks
             private void Execute(
                 [EntityIndexInQuery] int sortKey,
                 in EntityLinkParentData config,
-                in EntityLinkParentState state)
+                ref EntityLinkParentState state)
             {
-                if (!config.RestoreOnEnd || state.Target == Entity.Null)
+                if (!config.RestoreOnEnd || state.Target == Entity.Null || !state.ParentApplied)
                     return;
 
                 if (state.HadParent && state.PreviousParent != Entity.Null && LtwLookup.TryGetComponent(state.PreviousParent, out var parentLtw))
