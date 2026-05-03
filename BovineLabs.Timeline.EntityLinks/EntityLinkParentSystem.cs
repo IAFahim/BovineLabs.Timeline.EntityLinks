@@ -1,4 +1,6 @@
 using BovineLabs.Core.EntityCommands;
+using BovineLabs.Core.Extensions;
+using BovineLabs.Core.Iterators;
 using BovineLabs.Core.Utility;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Data;
@@ -37,12 +39,12 @@ namespace BovineLabs.Timeline.EntityLinks
             {
                 TargetsLookup = SystemAPI.GetComponentLookup<Targets>(true),
                 TargetsCustoms = SystemAPI.GetComponentLookup<TargetsCustom>(true),
-                Sources = SystemAPI.GetComponentLookup<EntityLinkSource>(true),
-                Links = SystemAPI.GetBufferLookup<EntityLinkEntry>(true),
+                Sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true),
+                Links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true),
                 LtwLookup = _ltwLookup,
                 ChildLookup = _childLookup,
-                ParentLookup = SystemAPI.GetComponentLookup<Parent>(true),
-                LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true),
+                ParentLookup = state.GetUnsafeComponentLookup<Parent>(true),
+                LocalTransformLookup = state.GetUnsafeComponentLookup<LocalTransform>(true),
                 ECB = ecb
             }.ScheduleParallel(state.Dependency);
 
@@ -61,17 +63,16 @@ namespace BovineLabs.Timeline.EntityLinks
         {
             [ReadOnly] public ComponentLookup<Targets> TargetsLookup;
             [ReadOnly] public ComponentLookup<TargetsCustom> TargetsCustoms;
-            [ReadOnly] public ComponentLookup<EntityLinkSource> Sources;
-            [ReadOnly] public BufferLookup<EntityLinkEntry> Links;
+            [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
+            [ReadOnly] public UnsafeBufferLookup<EntityLinkEntry> Links;
             [ReadOnly] public ComponentLookup<LocalToWorld> LtwLookup;
             [ReadOnly] public BufferLookup<Child> ChildLookup;
-            [ReadOnly] public ComponentLookup<Parent> ParentLookup;
-            [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
+            [ReadOnly] public UnsafeComponentLookup<Parent> ParentLookup;
+            [ReadOnly] public UnsafeComponentLookup<LocalTransform> LocalTransformLookup;
 
             public EntityCommandBuffer.ParallelWriter ECB;
 
             private void Execute(
-                Entity clipEntity,
                 [EntityIndexInQuery] int sortKey,
                 in TrackBinding binding,
                 in EntityLinkParentData config,

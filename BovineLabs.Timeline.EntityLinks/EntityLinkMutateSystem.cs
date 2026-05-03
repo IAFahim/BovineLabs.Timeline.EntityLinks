@@ -1,3 +1,5 @@
+using BovineLabs.Core.Extensions;
+using BovineLabs.Core.Iterators;
 using BovineLabs.Core.Utility;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Data;
@@ -13,8 +15,8 @@ namespace BovineLabs.Timeline.EntityLinks
     {
         private ComponentLookup<Targets> targetsLookup;
         private ComponentLookup<TargetsCustom> targetsCustoms;
-        private ComponentLookup<EntityLinkSource> sources;
-        private BufferLookup<EntityLinkEntry> entries;
+        private UnsafeComponentLookup<EntityLinkSource> sources;
+        private UnsafeBufferLookup<EntityLinkEntry> entries;
         private EntityLock entityLock;
 
         [BurstCompile]
@@ -23,8 +25,8 @@ namespace BovineLabs.Timeline.EntityLinks
             state.RequireForUpdate<EntityLinkMutate>();
             this.targetsLookup = state.GetComponentLookup<Targets>(true);
             this.targetsCustoms = state.GetComponentLookup<TargetsCustom>(true);
-            this.sources = state.GetComponentLookup<EntityLinkSource>(true);
-            this.entries = state.GetBufferLookup<EntityLinkEntry>(false);
+            this.sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
+            this.entries = state.GetUnsafeBufferLookup<EntityLinkEntry>(false);
             this.entityLock = new EntityLock(Allocator.Persistent);
         }
 
@@ -59,14 +61,14 @@ namespace BovineLabs.Timeline.EntityLinks
         {
             [ReadOnly] public ComponentLookup<Targets> TargetsLookup;
             [ReadOnly] public ComponentLookup<TargetsCustom> TargetsCustoms;
-            [ReadOnly] public ComponentLookup<EntityLinkSource> Sources;
+            [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
 
             [NativeDisableParallelForRestriction]
-            public BufferLookup<EntityLinkEntry> Entries;
+            public UnsafeBufferLookup<EntityLinkEntry> Entries;
             
             public EntityLock EntityLock;
 
-            private void Execute(Entity clipEntity, in TrackBinding binding, in EntityLinkMutate mutate)
+            private void Execute(in TrackBinding binding, in EntityLinkMutate mutate)
             {
                 var bindingEntity = binding.Value;
                 if (bindingEntity == Entity.Null || !this.TargetsLookup.TryGetComponent(bindingEntity, out var targets)) return;

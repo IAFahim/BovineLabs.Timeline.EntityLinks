@@ -1,3 +1,5 @@
+using BovineLabs.Core.Extensions;
+using BovineLabs.Core.Iterators;
 using BovineLabs.Core.Utility;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Data;
@@ -13,8 +15,8 @@ namespace BovineLabs.Timeline.EntityLinks
     {
         private ComponentLookup<Targets> targetsLookup;
         private ComponentLookup<TargetsCustom> targetsCustoms;
-        private ComponentLookup<EntityLinkSource> sources;
-        private BufferLookup<EntityLinkEntry> links;
+        private UnsafeComponentLookup<EntityLinkSource> sources;
+        private UnsafeBufferLookup<EntityLinkEntry> links;
         private EntityLock entityLock;
 
         [BurstCompile]
@@ -23,8 +25,8 @@ namespace BovineLabs.Timeline.EntityLinks
             state.RequireForUpdate<EntityLinkTargetPatch>();
             this.targetsLookup = state.GetComponentLookup<Targets>(false);
             this.targetsCustoms = state.GetComponentLookup<TargetsCustom>(false);
-            this.sources = state.GetComponentLookup<EntityLinkSource>(true);
-            this.links = state.GetBufferLookup<EntityLinkEntry>(true);
+            this.sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
+            this.links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true);
             this.entityLock = new EntityLock(Allocator.Persistent);
         }
 
@@ -65,8 +67,8 @@ namespace BovineLabs.Timeline.EntityLinks
             [NativeDisableParallelForRestriction]
             public ComponentLookup<TargetsCustom> TargetsCustoms;
 
-            [ReadOnly] public ComponentLookup<EntityLinkSource> Sources;
-            [ReadOnly] public BufferLookup<EntityLinkEntry> Links;
+            [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
+            [ReadOnly] public UnsafeBufferLookup<EntityLinkEntry> Links;
 
             public EntityLock EntityLock;
             public EntityCommandBuffer.ParallelWriter ECB;

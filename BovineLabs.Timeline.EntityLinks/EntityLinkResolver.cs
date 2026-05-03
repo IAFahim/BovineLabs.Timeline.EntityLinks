@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using BovineLabs.Core.Iterators;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.EntityLinks.Data;
 using Unity.Entities;
@@ -8,7 +9,7 @@ namespace BovineLabs.Timeline.EntityLinks
     public static class EntityLinkResolver
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryResolveRoot(Entity entity, in ComponentLookup<EntityLinkSource> sources, out Entity root)
+        public static bool TryResolveRoot(Entity entity, in UnsafeComponentLookup<EntityLinkSource> sources, out Entity root)
         {
             if (entity == Entity.Null)
             {
@@ -24,7 +25,7 @@ namespace BovineLabs.Timeline.EntityLinks
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryResolveFromRoot(Entity root, ushort key, in BufferLookup<EntityLinkEntry> entries, out Entity result)
+        public static bool TryResolveFromRoot(Entity root, ushort key, in UnsafeBufferLookup<EntityLinkEntry> entries, out Entity result)
         {
             if (root != Entity.Null && key != 0 && entries.TryGetBuffer(root, out var buffer))
             {
@@ -46,8 +47,8 @@ namespace BovineLabs.Timeline.EntityLinks
         public static bool TryResolve(
             Entity entity,
             ushort key,
-            in ComponentLookup<EntityLinkSource> sources,
-            in BufferLookup<EntityLinkEntry> entries,
+            in UnsafeComponentLookup<EntityLinkSource> sources,
+            in UnsafeBufferLookup<EntityLinkEntry> entries,
             out Entity result)
         {
             if (!TryResolveRoot(entity, sources, out var root))
@@ -66,8 +67,8 @@ namespace BovineLabs.Timeline.EntityLinks
             Target readRootFrom,
             ushort key,
             in ComponentLookup<TargetsCustom> targetsCustoms,
-            in ComponentLookup<EntityLinkSource> sources,
-            in BufferLookup<EntityLinkEntry> entries,
+            in UnsafeComponentLookup<EntityLinkSource> sources,
+            in UnsafeBufferLookup<EntityLinkEntry> entries,
             out Entity result)
         {
             var rootCandidate = targets.Get(readRootFrom, self, targetsCustoms);
@@ -86,8 +87,8 @@ namespace BovineLabs.Timeline.EntityLinks
             in Targets targets,
             in EntityLinkTargetPatch patch,
             in ComponentLookup<TargetsCustom> targetsCustoms,
-            in ComponentLookup<EntityLinkSource> sources,
-            in BufferLookup<EntityLinkEntry> entries)
+            in UnsafeComponentLookup<EntityLinkSource> sources,
+            in UnsafeBufferLookup<EntityLinkEntry> entries)
         {
             if (TryResolve(self, targets, patch.ReadRootFrom, patch.LinkKey, targetsCustoms, sources, entries,
                     out var linked)) return linked;
