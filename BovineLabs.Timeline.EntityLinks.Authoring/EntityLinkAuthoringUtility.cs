@@ -19,7 +19,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 return false;
 
             var binding = context.Director.GetGenericBinding(context.Track);
-            var target = binding as Component ?? (binding as GameObject)?.transform;
+            var target = binding as Component ?? (binding as GameObject)?.transform; 
 
             if (target == null)
                 return false;
