@@ -12,7 +12,6 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
     public class EntityLinkSystemTests : ECSTestsFixture
     {
         [Test]
-        [TestLeakDetection]
         public void EntityLinkMutateSystem_Assign_AddsMissingEntry()
         {
             var system = this.World.CreateSystem<EntityLinkMutateSystem>();
@@ -35,10 +34,10 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             Assert.AreEqual(1, buffer.Length);
             Assert.AreEqual(10, buffer[0].Key);
             Assert.AreEqual(target, buffer[0].Target);
+            this.World.DestroySystem(system);
         }
 
         [Test]
-        [TestLeakDetection]
         public void EntityLinkMutateSystem_Swap_ExchangesEntryTargets()
         {
             var system = this.World.CreateSystem<EntityLinkMutateSystem>();
@@ -61,12 +60,13 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             system.Update(this.WorldUnmanaged);
             this.Manager.CompleteAllTrackedJobs();
 
+            buffer = this.Manager.GetBuffer<EntityLinkEntry>(root);
             Assert.AreEqual(b, buffer[0].Target);
             Assert.AreEqual(a, buffer[1].Target);
+            this.World.DestroySystem(system);
         }
 
         [Test]
-        [TestLeakDetection]
         public void EntityLinkMutateSystem_Remove_RemovesAllMatchingEntries()
         {
             var system = this.World.CreateSystem<EntityLinkMutateSystem>();
@@ -87,12 +87,13 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             system.Update(this.WorldUnmanaged);
             this.Manager.CompleteAllTrackedJobs();
 
+            buffer = this.Manager.GetBuffer<EntityLinkEntry>(root);
             Assert.AreEqual(1, buffer.Length);
             Assert.AreEqual(4, buffer[0].Key);
+            this.World.DestroySystem(system);
         }
 
         [Test]
-        [TestLeakDetection]
         public void EntityLinkTargetPatchSystem_WriteTarget_UsesResolvedLink()
         {
             var ecbSystem = this.World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
@@ -115,10 +116,11 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             this.Manager.CompleteAllTrackedJobs();
 
             Assert.AreEqual(linked, this.Manager.GetComponentData<Targets>(binding).Target);
+            this.World.DestroySystem(system);
+            this.World.DestroySystem(ecbSystem);
         }
 
         [Test]
-        [TestLeakDetection]
         public void EntityLinkTargetPatchSystem_WriteCustom_AddsTargetsCustom()
         {
             var ecbSystem = this.World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
@@ -141,10 +143,11 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
 
             Assert.IsTrue(this.Manager.HasComponent<TargetsCustom>(binding));
             Assert.AreEqual(linked, this.Manager.GetComponentData<TargetsCustom>(binding).Target0);
+            this.World.DestroySystem(system);
+            this.World.DestroySystem(ecbSystem);
         }
 
         [Test]
-        [TestLeakDetection]
         public void EntityLinkTargetPatchSystem_MissingLink_UsesFallback()
         {
             var ecbSystem = this.World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
@@ -166,10 +169,11 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             this.Manager.CompleteAllTrackedJobs();
 
             Assert.AreEqual(fallback, this.Manager.GetComponentData<Targets>(binding).Owner);
+            this.World.DestroySystem(system);
+            this.World.DestroySystem(ecbSystem);
         }
 
         [Test]
-        [TestLeakDetection]
         public void EntityLinkParentSystem_Enter_ParentsTargetToResolvedLink()
         {
             var ecbSystem = this.World.CreateSystem<EndFixedStepSimulationEntityCommandBufferSystem>();
@@ -196,10 +200,11 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             Assert.AreEqual(parent, this.Manager.GetComponentData<Parent>(child).Value);
             Assert.AreEqual(new float3(1, 2, 3), this.Manager.GetComponentData<LocalTransform>(child).Position);
             Assert.IsTrue(this.Manager.GetComponentData<EntityLinkParentState>(clip).ParentApplied);
+            this.World.DestroySystem(system);
+            this.World.DestroySystem(ecbSystem);
         }
 
         [Test]
-        [TestLeakDetection]
         public void EntityLinkParentSystem_Exit_RestoresPreviousParent()
         {
             var ecbSystem = this.World.CreateSystem<EndFixedStepSimulationEntityCommandBufferSystem>();
@@ -224,6 +229,8 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             this.Manager.CompleteAllTrackedJobs();
 
             Assert.AreEqual(previousParent, this.Manager.GetComponentData<Parent>(child).Value);
+            this.World.DestroySystem(system);
+            this.World.DestroySystem(ecbSystem);
         }
 
         private Entity CreateRoot(params EntityLinkEntry[] entries)

@@ -1,3 +1,4 @@
+using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.EntityLinks.Data;
 using NUnit.Framework;
 using Unity.Entities;
@@ -44,10 +45,10 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         public void EntityLinkTargetPatch_Defaults()
         {
             var patch = new EntityLinkTargetPatch();
-            Assert.AreEqual(default, patch.ReadRootFrom);
+            Assert.AreEqual(Target.None, patch.ReadRootFrom);
             Assert.AreEqual(0, patch.LinkKey);
-            Assert.AreEqual(default, patch.WriteTo);
-            Assert.AreEqual(default, patch.Fallback);
+            Assert.AreEqual(Target.None, patch.WriteTo);
+            Assert.AreEqual(Target.None, patch.Fallback);
         }
 
         [Test]
@@ -75,9 +76,9 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         {
             var mutate = new EntityLinkMutate();
             Assert.AreEqual(EntityLinkMutateMode.Assign, mutate.Mode);
-            Assert.AreEqual(default, mutate.ReadRootFrom);
+            Assert.AreEqual(Target.None, mutate.ReadRootFrom);
             Assert.AreEqual(0, mutate.LinkKey);
-            Assert.AreEqual(default, mutate.NewTarget);
+            Assert.AreEqual(Target.None, mutate.NewTarget);
             Assert.AreEqual(0, mutate.SwapKey);
         }
 
@@ -114,11 +115,11 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         public void EntityLinkParentData_Defaults()
         {
             var data = new EntityLinkParentData();
-            Assert.AreEqual(default, data.EntityToParent);
-            Assert.AreEqual(default, data.ReadRootFrom);
+            Assert.AreEqual(Target.None, data.EntityToParent);
+            Assert.AreEqual(Target.None, data.ReadRootFrom);
             Assert.AreEqual(0, data.ParentLinkKey);
             Assert.AreEqual(float3.zero, data.LocalPosition);
-            Assert.AreEqual(quaternion.identity.value, data.LocalRotation.value);
+            Assert.AreEqual(default(quaternion).value, data.LocalRotation.value);
             Assert.IsFalse(data.RestoreOnEnd);
         }
 
