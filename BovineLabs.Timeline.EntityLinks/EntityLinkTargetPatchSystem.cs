@@ -13,44 +13,44 @@ namespace BovineLabs.Timeline.EntityLinks
     [UpdateInGroup(typeof(TimelineComponentAnimationGroup))]
     public partial struct EntityLinkTargetPatchSystem : ISystem
     {
-        private ComponentLookup<Targets> targetsLookup;
-        private ComponentLookup<TargetsCustom> targetsCustoms;
-        private UnsafeComponentLookup<EntityLinkSource> sources;
-        private UnsafeBufferLookup<EntityLinkEntry> links;
-        private EntityLock entityLock;
+        private ComponentLookup<Targets> _targetsLookup;
+        private ComponentLookup<TargetsCustom> _targetsCustoms;
+        private UnsafeComponentLookup<EntityLinkSource> _sources;
+        private UnsafeBufferLookup<EntityLinkEntry> _links;
+        private EntityLock _entityLock;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EntityLinkTargetPatch>();
-            targetsLookup = state.GetComponentLookup<Targets>();
-            targetsCustoms = state.GetComponentLookup<TargetsCustom>();
-            sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
-            links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true);
-            entityLock = new EntityLock(Allocator.Persistent);
+            _targetsLookup = state.GetComponentLookup<Targets>();
+            _targetsCustoms = state.GetComponentLookup<TargetsCustom>();
+            _sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
+            _links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true);
+            _entityLock = new EntityLock(Allocator.Persistent);
         }
 
         [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
-            entityLock.Dispose();
+            _entityLock.Dispose();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            targetsLookup.Update(ref state);
-            targetsCustoms.Update(ref state);
-            sources.Update(ref state);
-            links.Update(ref state);
+            _targetsLookup.Update(ref state);
+            _targetsCustoms.Update(ref state);
+            _sources.Update(ref state);
+            _links.Update(ref state);
 
             state.Dependency = new PatchJob
             {
-                TargetsLookup = targetsLookup,
-                TargetsCustoms = targetsCustoms,
-                Sources = sources,
-                Links = links,
-                EntityLock = entityLock,
+                TargetsLookup = _targetsLookup,
+                TargetsCustoms = _targetsCustoms,
+                Sources = _sources,
+                Links = _links,
+                EntityLock = _entityLock,
                 ECB = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
                     .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
             }.ScheduleParallel(state.Dependency);

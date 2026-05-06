@@ -20,25 +20,25 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
     [UpdateInGroup(typeof(DebugSystemGroup))]
     public partial struct EntityLinkDebugSystem : ISystem
     {
-        private UnsafeComponentLookup<LocalToWorld> worldSpaceLookup;
+        private UnsafeComponentLookup<LocalToWorld> _worldSpaceLookup;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            worldSpaceLookup = state.GetUnsafeComponentLookup<LocalToWorld>(true);
+            _worldSpaceLookup = state.GetUnsafeComponentLookup<LocalToWorld>(true);
             state.RequireForUpdate<DrawSystem.Singleton>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            worldSpaceLookup.Update(ref state);
+            _worldSpaceLookup.Update(ref state);
             var renderer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer();
 
             state.Dependency = new RenderTransition
             {
                 Renderer = renderer,
-                WorldSpace = worldSpaceLookup
+                WorldSpace = _worldSpaceLookup
             }.Schedule(state.Dependency);
         }
 

@@ -15,44 +15,44 @@ namespace BovineLabs.Timeline.EntityLinks
     [UpdateBefore(typeof(EntityLinkParentSystem))]
     public partial struct EntityLinkMutateSystem : ISystem
     {
-        private ComponentLookup<Targets> targetsLookup;
-        private ComponentLookup<TargetsCustom> targetsCustoms;
-        private UnsafeComponentLookup<EntityLinkSource> sources;
-        private UnsafeBufferLookup<EntityLinkEntry> entries;
-        private EntityLock entityLock;
+        private ComponentLookup<Targets> _targetsLookup;
+        private ComponentLookup<TargetsCustom> _targetsCustoms;
+        private UnsafeComponentLookup<EntityLinkSource> _sources;
+        private UnsafeBufferLookup<EntityLinkEntry> _entries;
+        private EntityLock _entityLock;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EntityLinkMutate>();
-            targetsLookup = state.GetComponentLookup<Targets>(true);
-            targetsCustoms = state.GetComponentLookup<TargetsCustom>(true);
-            sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
-            entries = state.GetUnsafeBufferLookup<EntityLinkEntry>();
-            entityLock = new EntityLock(Allocator.Persistent);
+            _targetsLookup = state.GetComponentLookup<Targets>(true);
+            _targetsCustoms = state.GetComponentLookup<TargetsCustom>(true);
+            _sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
+            _entries = state.GetUnsafeBufferLookup<EntityLinkEntry>();
+            _entityLock = new EntityLock(Allocator.Persistent);
         }
 
         [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
-            entityLock.Dispose();
+            _entityLock.Dispose();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            targetsLookup.Update(ref state);
-            targetsCustoms.Update(ref state);
-            sources.Update(ref state);
-            entries.Update(ref state);
+            _targetsLookup.Update(ref state);
+            _targetsCustoms.Update(ref state);
+            _sources.Update(ref state);
+            _entries.Update(ref state);
 
             state.Dependency = new MutateJob
             {
-                TargetsLookup = targetsLookup,
-                TargetsCustoms = targetsCustoms,
-                Sources = sources,
-                Entries = entries,
-                EntityLock = entityLock
+                TargetsLookup = _targetsLookup,
+                TargetsCustoms = _targetsCustoms,
+                Sources = _sources,
+                Entries = _entries,
+                EntityLock = _entityLock
             }.ScheduleParallel(state.Dependency);
         }
 
