@@ -33,11 +33,12 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
         public void OnUpdate(ref SystemState state)
         {
             _worldSpaceLookup.Update(ref state);
-            var renderer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer();
+            var drawer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer<EntityLinkDebugSystem>();
+            if(!drawer.IsEnabled) return;
 
             state.Dependency = new RenderTransition
             {
-                Renderer = renderer,
+                Renderer = drawer,
                 WorldSpace = _worldSpaceLookup
             }.Schedule(state.Dependency);
         }
