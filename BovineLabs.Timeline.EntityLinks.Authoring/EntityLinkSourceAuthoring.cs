@@ -4,11 +4,12 @@ using BovineLabs.Timeline.EntityLinks.Data;
 using Unity.Entities;
 using UnityEditor;
 using UnityEngine;
+using TransformAuthoring = BovineLabs.Core.Authoring.TransformAuthoring;
 
 namespace BovineLabs.Timeline.EntityLinks.Authoring
 {
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(BovineLabs.Core.Authoring.TransformAuthoring))]
+    [RequireComponent(typeof(TransformAuthoring))]
     public sealed class EntityLinkSourceAuthoring : MonoBehaviour
     {
         public EntityLinkRootAuthoring Root;
@@ -39,7 +40,8 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
             if (schema == null) return false;
 
             foreach (var s in Schemas)
-                if (s == schema) return true;
+                if (s == schema)
+                    return true;
 
             return false;
         }
@@ -47,9 +49,8 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         internal void AddSchemas(List<EntityLinkSchema> schemas)
         {
             foreach (var s in Schemas)
-            {
-                if (s != null) schemas.Add(s);
-            }
+                if (s != null)
+                    schemas.Add(s);
         }
 
         private sealed class Baker : Baker<EntityLinkSourceAuthoring>

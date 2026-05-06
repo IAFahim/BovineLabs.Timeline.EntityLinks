@@ -11,32 +11,32 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkMutate_CanBeAddedToEntity()
         {
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkMutate());
-            Assert.IsTrue(this.Manager.HasComponent<EntityLinkMutate>(entity));
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkMutate());
+            Assert.IsTrue(Manager.HasComponent<EntityLinkMutate>(entity));
         }
 
         [Test]
         public void EntityLinkMutate_DefaultModeIsAssign()
         {
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkMutate());
-            var data = this.Manager.GetComponentData<EntityLinkMutate>(entity);
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkMutate());
+            var data = Manager.GetComponentData<EntityLinkMutate>(entity);
             Assert.AreEqual(EntityLinkMutateMode.Assign, data.Mode);
         }
 
         [Test]
         public void EntityLinkMutate_RoundtripValues()
         {
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkMutate
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkMutate
             {
                 Mode = EntityLinkMutateMode.Remove,
                 LinkKey = 99,
                 SwapKey = 10
             });
 
-            var data = this.Manager.GetComponentData<EntityLinkMutate>(entity);
+            var data = Manager.GetComponentData<EntityLinkMutate>(entity);
             Assert.AreEqual(EntityLinkMutateMode.Remove, data.Mode);
             Assert.AreEqual(99, data.LinkKey);
             Assert.AreEqual(10, data.SwapKey);
@@ -45,15 +45,15 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkMutate_ModeSwap_Roundtrip()
         {
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkMutate
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkMutate
             {
                 Mode = EntityLinkMutateMode.Swap,
                 LinkKey = 1,
                 SwapKey = 2
             });
 
-            var data = this.Manager.GetComponentData<EntityLinkMutate>(entity);
+            var data = Manager.GetComponentData<EntityLinkMutate>(entity);
             Assert.AreEqual(EntityLinkMutateMode.Swap, data.Mode);
             Assert.AreEqual(1, data.LinkKey);
             Assert.AreEqual(2, data.SwapKey);
@@ -62,20 +62,20 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkEntry_BufferCanBeAdded()
         {
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
-            Assert.IsTrue(this.Manager.HasBuffer<EntityLinkEntry>(entity));
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
+            Assert.IsTrue(Manager.HasBuffer<EntityLinkEntry>(entity));
             Assert.AreEqual(0, buffer.Length);
         }
 
         [Test]
         public void EntityLinkEntry_BufferAddEntries()
         {
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
 
-            var t1 = this.Manager.CreateEntity();
-            var t2 = this.Manager.CreateEntity();
+            var t1 = Manager.CreateEntity();
+            var t2 = Manager.CreateEntity();
             buffer.Add(new EntityLinkEntry { Key = 1, Target = t1 });
             buffer.Add(new EntityLinkEntry { Key = 2, Target = t2 });
 
@@ -89,8 +89,8 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkEntry_BufferRemoveAt()
         {
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
             buffer.Add(new EntityLinkEntry { Key = 1 });
             buffer.Add(new EntityLinkEntry { Key = 2 });
             buffer.Add(new EntityLinkEntry { Key = 3 });
@@ -104,8 +104,8 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkEntry_BufferClear()
         {
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
             buffer.Add(new EntityLinkEntry { Key = 1 });
             buffer.Add(new EntityLinkEntry { Key = 2 });
 
@@ -116,9 +116,9 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkEntry_BufferModifyInPlace()
         {
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
-            var target = this.Manager.CreateEntity();
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
+            var target = Manager.CreateEntity();
             buffer.Add(new EntityLinkEntry { Key = 5, Target = Entity.Null });
 
             buffer[0] = new EntityLinkEntry { Key = 5, Target = target };
@@ -128,10 +128,10 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkEntry_DuplicateKeysAllowed()
         {
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
-            buffer.Add(new EntityLinkEntry { Key = 1, Target = this.Manager.CreateEntity() });
-            buffer.Add(new EntityLinkEntry { Key = 1, Target = this.Manager.CreateEntity() });
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
+            buffer.Add(new EntityLinkEntry { Key = 1, Target = Manager.CreateEntity() });
+            buffer.Add(new EntityLinkEntry { Key = 1, Target = Manager.CreateEntity() });
 
             Assert.AreEqual(2, buffer.Length);
             Assert.AreEqual(1, buffer[0].Key);
@@ -141,8 +141,8 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkEntry_MaxKey()
         {
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
             buffer.Add(new EntityLinkEntry { Key = ushort.MaxValue });
 
             Assert.AreEqual(ushort.MaxValue, buffer[0].Key);
@@ -151,67 +151,67 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkSource_CanBeAddedToEntity()
         {
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkSource());
-            Assert.IsTrue(this.Manager.HasComponent<EntityLinkSource>(entity));
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkSource());
+            Assert.IsTrue(Manager.HasComponent<EntityLinkSource>(entity));
         }
 
         [Test]
         public void EntityLinkSource_Roundtrip()
         {
-            var root = this.Manager.CreateEntity();
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkSource { Root = root });
+            var root = Manager.CreateEntity();
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkSource { Root = root });
 
-            var data = this.Manager.GetComponentData<EntityLinkSource>(entity);
+            var data = Manager.GetComponentData<EntityLinkSource>(entity);
             Assert.AreEqual(root, data.Root);
         }
 
         [Test]
         public void EntityLinkTargetPatch_CanBeAddedToEntity()
         {
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkTargetPatch());
-            Assert.IsTrue(this.Manager.HasComponent<EntityLinkTargetPatch>(entity));
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkTargetPatch());
+            Assert.IsTrue(Manager.HasComponent<EntityLinkTargetPatch>(entity));
         }
 
         [Test]
         public void EntityLinkTargetPatch_Roundtrip()
         {
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkTargetPatch
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkTargetPatch
             {
                 LinkKey = 42
             });
 
-            var data = this.Manager.GetComponentData<EntityLinkTargetPatch>(entity);
+            var data = Manager.GetComponentData<EntityLinkTargetPatch>(entity);
             Assert.AreEqual(42, data.LinkKey);
         }
 
         [Test]
         public void EntityLinkParentData_CanBeAddedToEntity()
         {
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkParentData());
-            Assert.IsTrue(this.Manager.HasComponent<EntityLinkParentData>(entity));
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkParentData());
+            Assert.IsTrue(Manager.HasComponent<EntityLinkParentData>(entity));
         }
 
         [Test]
         public void EntityLinkParentState_CanBeAddedToEntity()
         {
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkParentState());
-            Assert.IsTrue(this.Manager.HasComponent<EntityLinkParentState>(entity));
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkParentState());
+            Assert.IsTrue(Manager.HasComponent<EntityLinkParentState>(entity));
         }
 
         [Test]
         public void EntityLinkParentState_Roundtrip()
         {
-            var entity = this.Manager.CreateEntity();
-            var target = this.Manager.CreateEntity();
-            var prev = this.Manager.CreateEntity();
+            var entity = Manager.CreateEntity();
+            var target = Manager.CreateEntity();
+            var prev = Manager.CreateEntity();
 
-            this.Manager.AddComponentData(entity, new EntityLinkParentState
+            Manager.AddComponentData(entity, new EntityLinkParentState
             {
                 Target = target,
                 PreviousParent = prev,
@@ -219,7 +219,7 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
                 ParentApplied = true
             });
 
-            var data = this.Manager.GetComponentData<EntityLinkParentState>(entity);
+            var data = Manager.GetComponentData<EntityLinkParentState>(entity);
             Assert.AreEqual(target, data.Target);
             Assert.AreEqual(prev, data.PreviousParent);
             Assert.IsTrue(data.HadParent);
@@ -229,18 +229,18 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void MultipleEntities_WithEntityLinkEntryBuffer()
         {
-            var archetype = this.Manager.CreateArchetype(typeof(EntityLinkEntry));
+            var archetype = Manager.CreateArchetype(typeof(EntityLinkEntry));
 
-            using var entities = this.Manager.CreateEntity(archetype, 3, Allocator.Temp);
-            for (int i = 0; i < entities.Length; i++)
+            using var entities = Manager.CreateEntity(archetype, 3, Allocator.Temp);
+            for (var i = 0; i < entities.Length; i++)
             {
-                var buffer = this.Manager.GetBuffer<EntityLinkEntry>(entities[i]);
+                var buffer = Manager.GetBuffer<EntityLinkEntry>(entities[i]);
                 buffer.Add(new EntityLinkEntry { Key = (ushort)(i + 1) });
             }
 
-            for (int i = 0; i < entities.Length; i++)
+            for (var i = 0; i < entities.Length; i++)
             {
-                var buffer = this.Manager.GetBuffer<EntityLinkEntry>(entities[i]);
+                var buffer = Manager.GetBuffer<EntityLinkEntry>(entities[i]);
                 Assert.AreEqual(1, buffer.Length);
                 Assert.AreEqual((ushort)(i + 1), buffer[0].Key);
             }

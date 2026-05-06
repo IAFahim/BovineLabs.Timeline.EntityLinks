@@ -23,34 +23,34 @@ namespace BovineLabs.Timeline.EntityLinks
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EntityLinkTargetPatch>();
-            this.targetsLookup = state.GetComponentLookup<Targets>(false);
-            this.targetsCustoms = state.GetComponentLookup<TargetsCustom>(false);
-            this.sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
-            this.links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true);
-            this.entityLock = new EntityLock(Allocator.Persistent);
+            targetsLookup = state.GetComponentLookup<Targets>();
+            targetsCustoms = state.GetComponentLookup<TargetsCustom>();
+            sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
+            links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true);
+            entityLock = new EntityLock(Allocator.Persistent);
         }
 
         [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
-            this.entityLock.Dispose();
+            entityLock.Dispose();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            this.targetsLookup.Update(ref state);
-            this.targetsCustoms.Update(ref state);
-            this.sources.Update(ref state);
-            this.links.Update(ref state);
+            targetsLookup.Update(ref state);
+            targetsCustoms.Update(ref state);
+            sources.Update(ref state);
+            links.Update(ref state);
 
             state.Dependency = new PatchJob
             {
-                TargetsLookup = this.targetsLookup,
-                TargetsCustoms = this.targetsCustoms,
-                Sources = this.sources,
-                Links = this.links,
-                EntityLock = this.entityLock,
+                TargetsLookup = targetsLookup,
+                TargetsCustoms = targetsCustoms,
+                Sources = sources,
+                Links = links,
+                EntityLock = entityLock,
                 ECB = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
                     .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
             }.ScheduleParallel(state.Dependency);
@@ -61,11 +61,9 @@ namespace BovineLabs.Timeline.EntityLinks
         [WithDisabled(typeof(ClipActivePrevious))]
         private partial struct PatchJob : IJobEntity
         {
-            [NativeDisableParallelForRestriction]
-            public ComponentLookup<Targets> TargetsLookup;
-            
-            [NativeDisableParallelForRestriction]
-            public ComponentLookup<TargetsCustom> TargetsCustoms;
+            [NativeDisableParallelForRestriction] public ComponentLookup<Targets> TargetsLookup;
+
+            [NativeDisableParallelForRestriction] public ComponentLookup<TargetsCustom> TargetsCustoms;
 
             [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
             [ReadOnly] public UnsafeBufferLookup<EntityLinkEntry> Links;
@@ -73,48 +71,50 @@ namespace BovineLabs.Timeline.EntityLinks
             public EntityLock EntityLock;
             public EntityCommandBuffer.ParallelWriter ECB;
 
-            private void Execute([EntityIndexInQuery] int sortKey, in TrackBinding binding, in EntityLinkTargetPatch patch)
+            private void Execute([EntityIndexInQuery] int sortKey, in TrackBinding binding,
+                in EntityLinkTargetPatch patch)
             {
                 var bindingEntity = binding.Value;
-                if (bindingEntity == Entity.Null || !this.TargetsLookup.TryGetComponent(bindingEntity, out var targets)) return;
+                if (bindingEntity == Entity.Null ||
+                    !TargetsLookup.TryGetComponent(bindingEntity, out var targets)) return;
 
                 var resolved = EntityLinkResolver.ResolveOrFallback(
                     bindingEntity,
                     targets,
                     patch,
-                    this.TargetsCustoms,
-                    this.Sources,
-                    this.Links);
+                    TargetsCustoms,
+                    Sources,
+                    Links);
 
                 if (resolved == Entity.Null) return;
 
-                using (this.EntityLock.Acquire(bindingEntity))
+                using (EntityLock.Acquire(bindingEntity))
                 {
-                    targets = this.TargetsLookup[bindingEntity];
-                    
+                    targets = TargetsLookup[bindingEntity];
+
                     switch (patch.WriteTo)
                     {
                         case Target.Owner:
                             targets.Owner = resolved;
-                            this.TargetsLookup[bindingEntity] = targets;
+                            TargetsLookup[bindingEntity] = targets;
                             break;
 
                         case Target.Source:
                             targets.Source = resolved;
-                            this.TargetsLookup[bindingEntity] = targets;
+                            TargetsLookup[bindingEntity] = targets;
                             break;
 
                         case Target.Target:
                             targets.Target = resolved;
-                            this.TargetsLookup[bindingEntity] = targets;
+                            TargetsLookup[bindingEntity] = targets;
                             break;
 
                         case Target.Custom0:
-                            this.WriteCustom0(sortKey, bindingEntity, resolved);
+                            WriteCustom0(sortKey, bindingEntity, resolved);
                             break;
 
                         case Target.Custom1:
-                            this.WriteCustom1(sortKey, bindingEntity, resolved);
+                            WriteCustom1(sortKey, bindingEntity, resolved);
                             break;
                     }
                 }
@@ -122,26 +122,26 @@ namespace BovineLabs.Timeline.EntityLinks
 
             private void WriteCustom0(int sortKey, Entity entity, Entity target)
             {
-                if (this.TargetsCustoms.TryGetComponent(entity, out var custom))
+                if (TargetsCustoms.TryGetComponent(entity, out var custom))
                 {
                     custom.Target0 = target;
-                    this.TargetsCustoms[entity] = custom;
+                    TargetsCustoms[entity] = custom;
                     return;
                 }
 
-                this.ECB.AddComponent(sortKey, entity, new TargetsCustom { Target0 = target });
+                ECB.AddComponent(sortKey, entity, new TargetsCustom { Target0 = target });
             }
 
             private void WriteCustom1(int sortKey, Entity entity, Entity target)
             {
-                if (this.TargetsCustoms.TryGetComponent(entity, out var custom))
+                if (TargetsCustoms.TryGetComponent(entity, out var custom))
                 {
                     custom.Target1 = target;
-                    this.TargetsCustoms[entity] = custom;
+                    TargetsCustoms[entity] = custom;
                     return;
                 }
 
-                this.ECB.AddComponent(sortKey, entity, new TargetsCustom { Target1 = target });
+                ECB.AddComponent(sortKey, entity, new TargetsCustom { Target1 = target });
             }
         }
     }

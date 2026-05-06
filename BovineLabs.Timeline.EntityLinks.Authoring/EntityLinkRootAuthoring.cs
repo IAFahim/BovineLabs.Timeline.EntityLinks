@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BovineLabs.Timeline.EntityLinks.Data;
 using Unity.Entities;
+using UnityEditor;
 using UnityEngine;
 
 namespace BovineLabs.Timeline.EntityLinks.Authoring
@@ -14,7 +15,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
                 return;
 
             Links = GetComponentsInChildren<EntityLinkSourceAuthoring>(true);
@@ -57,13 +58,11 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 var entryBuffer = AddBuffer<EntityLinkEntry>(rootEntity);
 
                 foreach (var entry in entries)
-                {
                     entryBuffer.Add(new EntityLinkEntry
                     {
                         Key = entry.Key,
-                        Target = GetEntity(entry.Target, TransformUsageFlags.None),
+                        Target = GetEntity(entry.Target, TransformUsageFlags.None)
                     });
-                }
             }
 
             private void AddLink(
@@ -81,7 +80,8 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
                 if (targetRoot != root)
                 {
-                    Debug.LogError($"EntityLink '{schemaName}' on '{root.name}' targets '{target.name}' under different root '{targetRoot.name}'.");
+                    Debug.LogError(
+                        $"EntityLink '{schemaName}' on '{root.name}' targets '{target.name}' under different root '{targetRoot.name}'.");
                     return;
                 }
 

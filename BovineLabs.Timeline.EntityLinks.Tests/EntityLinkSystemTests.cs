@@ -14,12 +14,12 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkMutateSystem_Assign_AddsMissingEntry()
         {
-            var system = this.World.CreateSystem<EntityLinkMutateSystem>();
-            var root = this.CreateRoot();
-            var target = this.Manager.CreateEntity();
-            var binding = this.CreateBinding(new Targets { Source = root, Target = target });
+            var system = World.CreateSystem<EntityLinkMutateSystem>();
+            var root = CreateRoot();
+            var target = Manager.CreateEntity();
+            var binding = CreateBinding(new Targets { Source = root, Target = target });
 
-            this.CreateActiveClip(binding, new EntityLinkMutate
+            CreateActiveClip(binding, new EntityLinkMutate
             {
                 Mode = EntityLinkMutateMode.Assign,
                 ReadRootFrom = Target.Source,
@@ -27,29 +27,29 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
                 NewTarget = Target.Target
             });
 
-            system.Update(this.WorldUnmanaged);
-            this.Manager.CompleteAllTrackedJobs();
+            system.Update(WorldUnmanaged);
+            Manager.CompleteAllTrackedJobs();
 
-            var buffer = this.Manager.GetBuffer<EntityLinkEntry>(root);
+            var buffer = Manager.GetBuffer<EntityLinkEntry>(root);
             Assert.AreEqual(1, buffer.Length);
             Assert.AreEqual(10, buffer[0].Key);
             Assert.AreEqual(target, buffer[0].Target);
-            this.World.DestroySystem(system);
+            World.DestroySystem(system);
         }
 
         [Test]
         public void EntityLinkMutateSystem_Swap_ExchangesEntryTargets()
         {
-            var system = this.World.CreateSystem<EntityLinkMutateSystem>();
-            var root = this.CreateRoot();
-            var a = this.Manager.CreateEntity();
-            var b = this.Manager.CreateEntity();
-            var buffer = this.Manager.GetBuffer<EntityLinkEntry>(root);
+            var system = World.CreateSystem<EntityLinkMutateSystem>();
+            var root = CreateRoot();
+            var a = Manager.CreateEntity();
+            var b = Manager.CreateEntity();
+            var buffer = Manager.GetBuffer<EntityLinkEntry>(root);
             buffer.Add(new EntityLinkEntry { Key = 1, Target = a });
             buffer.Add(new EntityLinkEntry { Key = 2, Target = b });
 
-            var binding = this.CreateBinding(new Targets { Source = root });
-            this.CreateActiveClip(binding, new EntityLinkMutate
+            var binding = CreateBinding(new Targets { Source = root });
+            CreateActiveClip(binding, new EntityLinkMutate
             {
                 Mode = EntityLinkMutateMode.Swap,
                 ReadRootFrom = Target.Source,
@@ -57,53 +57,53 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
                 SwapKey = 2
             });
 
-            system.Update(this.WorldUnmanaged);
-            this.Manager.CompleteAllTrackedJobs();
+            system.Update(WorldUnmanaged);
+            Manager.CompleteAllTrackedJobs();
 
-            buffer = this.Manager.GetBuffer<EntityLinkEntry>(root);
+            buffer = Manager.GetBuffer<EntityLinkEntry>(root);
             Assert.AreEqual(b, buffer[0].Target);
             Assert.AreEqual(a, buffer[1].Target);
-            this.World.DestroySystem(system);
+            World.DestroySystem(system);
         }
 
         [Test]
         public void EntityLinkMutateSystem_Remove_RemovesAllMatchingEntries()
         {
-            var system = this.World.CreateSystem<EntityLinkMutateSystem>();
-            var root = this.CreateRoot();
-            var buffer = this.Manager.GetBuffer<EntityLinkEntry>(root);
-            buffer.Add(new EntityLinkEntry { Key = 3, Target = this.Manager.CreateEntity() });
-            buffer.Add(new EntityLinkEntry { Key = 4, Target = this.Manager.CreateEntity() });
-            buffer.Add(new EntityLinkEntry { Key = 3, Target = this.Manager.CreateEntity() });
+            var system = World.CreateSystem<EntityLinkMutateSystem>();
+            var root = CreateRoot();
+            var buffer = Manager.GetBuffer<EntityLinkEntry>(root);
+            buffer.Add(new EntityLinkEntry { Key = 3, Target = Manager.CreateEntity() });
+            buffer.Add(new EntityLinkEntry { Key = 4, Target = Manager.CreateEntity() });
+            buffer.Add(new EntityLinkEntry { Key = 3, Target = Manager.CreateEntity() });
 
-            var binding = this.CreateBinding(new Targets { Source = root });
-            this.CreateActiveClip(binding, new EntityLinkMutate
+            var binding = CreateBinding(new Targets { Source = root });
+            CreateActiveClip(binding, new EntityLinkMutate
             {
                 Mode = EntityLinkMutateMode.Remove,
                 ReadRootFrom = Target.Source,
                 LinkKey = 3
             });
 
-            system.Update(this.WorldUnmanaged);
-            this.Manager.CompleteAllTrackedJobs();
+            system.Update(WorldUnmanaged);
+            Manager.CompleteAllTrackedJobs();
 
-            buffer = this.Manager.GetBuffer<EntityLinkEntry>(root);
+            buffer = Manager.GetBuffer<EntityLinkEntry>(root);
             Assert.AreEqual(1, buffer.Length);
             Assert.AreEqual(4, buffer[0].Key);
-            this.World.DestroySystem(system);
+            World.DestroySystem(system);
         }
 
         [Test]
         public void EntityLinkTargetPatchSystem_WriteTarget_UsesResolvedLink()
         {
-            var ecbSystem = this.World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
-            var system = this.World.CreateSystem<EntityLinkTargetPatchSystem>();
-            var linked = this.Manager.CreateEntity();
-            var root = this.CreateRoot(new EntityLinkEntry { Key = 5, Target = linked });
-            var fallback = this.Manager.CreateEntity();
-            var binding = this.CreateBinding(new Targets { Source = root, Target = fallback });
+            var ecbSystem = World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
+            var system = World.CreateSystem<EntityLinkTargetPatchSystem>();
+            var linked = Manager.CreateEntity();
+            var root = CreateRoot(new EntityLinkEntry { Key = 5, Target = linked });
+            var fallback = Manager.CreateEntity();
+            var binding = CreateBinding(new Targets { Source = root, Target = fallback });
 
-            this.CreateActiveClip(binding, new EntityLinkTargetPatch
+            CreateActiveClip(binding, new EntityLinkTargetPatch
             {
                 ReadRootFrom = Target.Source,
                 LinkKey = 5,
@@ -111,25 +111,25 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
                 Fallback = Target.Target
             });
 
-            system.Update(this.WorldUnmanaged);
-            ecbSystem.Update(this.WorldUnmanaged);
-            this.Manager.CompleteAllTrackedJobs();
+            system.Update(WorldUnmanaged);
+            ecbSystem.Update(WorldUnmanaged);
+            Manager.CompleteAllTrackedJobs();
 
-            Assert.AreEqual(linked, this.Manager.GetComponentData<Targets>(binding).Target);
-            this.World.DestroySystem(system);
-            this.World.DestroySystem(ecbSystem);
+            Assert.AreEqual(linked, Manager.GetComponentData<Targets>(binding).Target);
+            World.DestroySystem(system);
+            World.DestroySystem(ecbSystem);
         }
 
         [Test]
         public void EntityLinkTargetPatchSystem_WriteCustom_AddsTargetsCustom()
         {
-            var ecbSystem = this.World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
-            var system = this.World.CreateSystem<EntityLinkTargetPatchSystem>();
-            var linked = this.Manager.CreateEntity();
-            var root = this.CreateRoot(new EntityLinkEntry { Key = 6, Target = linked });
-            var binding = this.CreateBinding(new Targets { Source = root });
+            var ecbSystem = World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
+            var system = World.CreateSystem<EntityLinkTargetPatchSystem>();
+            var linked = Manager.CreateEntity();
+            var root = CreateRoot(new EntityLinkEntry { Key = 6, Target = linked });
+            var binding = CreateBinding(new Targets { Source = root });
 
-            this.CreateActiveClip(binding, new EntityLinkTargetPatch
+            CreateActiveClip(binding, new EntityLinkTargetPatch
             {
                 ReadRootFrom = Target.Source,
                 LinkKey = 6,
@@ -137,26 +137,26 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
                 Fallback = Target.None
             });
 
-            system.Update(this.WorldUnmanaged);
-            ecbSystem.Update(this.WorldUnmanaged);
-            this.Manager.CompleteAllTrackedJobs();
+            system.Update(WorldUnmanaged);
+            ecbSystem.Update(WorldUnmanaged);
+            Manager.CompleteAllTrackedJobs();
 
-            Assert.IsTrue(this.Manager.HasComponent<TargetsCustom>(binding));
-            Assert.AreEqual(linked, this.Manager.GetComponentData<TargetsCustom>(binding).Target0);
-            this.World.DestroySystem(system);
-            this.World.DestroySystem(ecbSystem);
+            Assert.IsTrue(Manager.HasComponent<TargetsCustom>(binding));
+            Assert.AreEqual(linked, Manager.GetComponentData<TargetsCustom>(binding).Target0);
+            World.DestroySystem(system);
+            World.DestroySystem(ecbSystem);
         }
 
         [Test]
         public void EntityLinkTargetPatchSystem_MissingLink_UsesFallback()
         {
-            var ecbSystem = this.World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
-            var system = this.World.CreateSystem<EntityLinkTargetPatchSystem>();
-            var root = this.CreateRoot();
-            var fallback = this.Manager.CreateEntity();
-            var binding = this.CreateBinding(new Targets { Source = root, Target = fallback });
+            var ecbSystem = World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
+            var system = World.CreateSystem<EntityLinkTargetPatchSystem>();
+            var root = CreateRoot();
+            var fallback = Manager.CreateEntity();
+            var binding = CreateBinding(new Targets { Source = root, Target = fallback });
 
-            this.CreateActiveClip(binding, new EntityLinkTargetPatch
+            CreateActiveClip(binding, new EntityLinkTargetPatch
             {
                 ReadRootFrom = Target.Source,
                 LinkKey = 99,
@@ -164,25 +164,25 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
                 Fallback = Target.Target
             });
 
-            system.Update(this.WorldUnmanaged);
-            ecbSystem.Update(this.WorldUnmanaged);
-            this.Manager.CompleteAllTrackedJobs();
+            system.Update(WorldUnmanaged);
+            ecbSystem.Update(WorldUnmanaged);
+            Manager.CompleteAllTrackedJobs();
 
-            Assert.AreEqual(fallback, this.Manager.GetComponentData<Targets>(binding).Owner);
-            this.World.DestroySystem(system);
-            this.World.DestroySystem(ecbSystem);
+            Assert.AreEqual(fallback, Manager.GetComponentData<Targets>(binding).Owner);
+            World.DestroySystem(system);
+            World.DestroySystem(ecbSystem);
         }
 
         [Test]
         public void EntityLinkParentSystem_Enter_ParentsTargetToResolvedLink()
         {
-            var ecbSystem = this.World.CreateSystem<EndFixedStepSimulationEntityCommandBufferSystem>();
-            var system = this.World.CreateSystem<EntityLinkParentSystem>();
-            var parent = this.CreateTransformEntity();
-            var child = this.CreateTransformEntity();
-            var root = this.CreateRoot(new EntityLinkEntry { Key = 8, Target = parent });
-            var binding = this.CreateBinding(new Targets { Source = root, Target = child });
-            var clip = this.CreateActiveClip(binding, new EntityLinkParentData
+            var ecbSystem = World.CreateSystem<EndFixedStepSimulationEntityCommandBufferSystem>();
+            var system = World.CreateSystem<EntityLinkParentSystem>();
+            var parent = CreateTransformEntity();
+            var child = CreateTransformEntity();
+            var root = CreateRoot(new EntityLinkEntry { Key = 8, Target = parent });
+            var binding = CreateBinding(new Targets { Source = root, Target = child });
+            var clip = CreateActiveClip(binding, new EntityLinkParentData
             {
                 EntityToParent = Target.Target,
                 ReadRootFrom = Target.Source,
@@ -191,32 +191,32 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
                 LocalRotation = quaternion.identity,
                 RestoreOnEnd = true
             });
-            this.Manager.AddComponentData(clip, new EntityLinkParentState());
+            Manager.AddComponentData(clip, new EntityLinkParentState());
 
-            system.Update(this.WorldUnmanaged);
-            ecbSystem.Update(this.WorldUnmanaged);
-            this.Manager.CompleteAllTrackedJobs();
+            system.Update(WorldUnmanaged);
+            ecbSystem.Update(WorldUnmanaged);
+            Manager.CompleteAllTrackedJobs();
 
-            Assert.AreEqual(parent, this.Manager.GetComponentData<Parent>(child).Value);
-            Assert.AreEqual(new float3(1, 2, 3), this.Manager.GetComponentData<LocalTransform>(child).Position);
-            Assert.IsTrue(this.Manager.GetComponentData<EntityLinkParentState>(clip).ParentApplied);
-            this.World.DestroySystem(system);
-            this.World.DestroySystem(ecbSystem);
+            Assert.AreEqual(parent, Manager.GetComponentData<Parent>(child).Value);
+            Assert.AreEqual(new float3(1, 2, 3), Manager.GetComponentData<LocalTransform>(child).Position);
+            Assert.IsTrue(Manager.GetComponentData<EntityLinkParentState>(clip).ParentApplied);
+            World.DestroySystem(system);
+            World.DestroySystem(ecbSystem);
         }
 
         [Test]
         public void EntityLinkParentSystem_Exit_RestoresPreviousParent()
         {
-            var ecbSystem = this.World.CreateSystem<EndFixedStepSimulationEntityCommandBufferSystem>();
-            var system = this.World.CreateSystem<EntityLinkParentSystem>();
-            var previousParent = this.CreateTransformEntity();
-            var currentParent = this.CreateTransformEntity();
-            var child = this.CreateTransformEntity();
-            this.Manager.AddComponentData(child, new Parent { Value = currentParent });
+            var ecbSystem = World.CreateSystem<EndFixedStepSimulationEntityCommandBufferSystem>();
+            var system = World.CreateSystem<EntityLinkParentSystem>();
+            var previousParent = CreateTransformEntity();
+            var currentParent = CreateTransformEntity();
+            var child = CreateTransformEntity();
+            Manager.AddComponentData(child, new Parent { Value = currentParent });
 
-            var binding = this.CreateBinding(new Targets { Target = child });
-            var clip = this.CreateClip(binding, new EntityLinkParentData { RestoreOnEnd = true }, active: false, activePrevious: true);
-            this.Manager.AddComponentData(clip, new EntityLinkParentState
+            var binding = CreateBinding(new Targets { Target = child });
+            var clip = CreateClip(binding, new EntityLinkParentData { RestoreOnEnd = true }, false, true);
+            Manager.AddComponentData(clip, new EntityLinkParentState
             {
                 Target = child,
                 PreviousParent = previousParent,
@@ -224,60 +224,57 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
                 ParentApplied = true
             });
 
-            system.Update(this.WorldUnmanaged);
-            ecbSystem.Update(this.WorldUnmanaged);
-            this.Manager.CompleteAllTrackedJobs();
+            system.Update(WorldUnmanaged);
+            ecbSystem.Update(WorldUnmanaged);
+            Manager.CompleteAllTrackedJobs();
 
-            Assert.AreEqual(previousParent, this.Manager.GetComponentData<Parent>(child).Value);
-            this.World.DestroySystem(system);
-            this.World.DestroySystem(ecbSystem);
+            Assert.AreEqual(previousParent, Manager.GetComponentData<Parent>(child).Value);
+            World.DestroySystem(system);
+            World.DestroySystem(ecbSystem);
         }
 
         private Entity CreateRoot(params EntityLinkEntry[] entries)
         {
-            var root = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(root);
-            foreach (var entry in entries)
-            {
-                buffer.Add(entry);
-            }
+            var root = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(root);
+            foreach (var entry in entries) buffer.Add(entry);
 
             return root;
         }
 
         private Entity CreateBinding(Targets targets)
         {
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, targets);
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, targets);
             return entity;
         }
 
         private Entity CreateActiveClip<T>(Entity binding, T data)
             where T : unmanaged, IComponentData
         {
-            return this.CreateClip(binding, data, active: true, activePrevious: false);
+            return CreateClip(binding, data, true, false);
         }
 
         private Entity CreateClip<T>(Entity binding, T data, bool active, bool activePrevious)
             where T : unmanaged, IComponentData
         {
-            var clip = this.Manager.CreateEntity(
+            var clip = Manager.CreateEntity(
                 typeof(TrackBinding),
                 typeof(ClipActive),
                 typeof(ClipActivePrevious),
                 typeof(T));
-            this.Manager.SetComponentData(clip, new TrackBinding { Value = binding });
-            this.Manager.SetComponentData(clip, data);
-            this.Manager.SetComponentEnabled<ClipActive>(clip, active);
-            this.Manager.SetComponentEnabled<ClipActivePrevious>(clip, activePrevious);
+            Manager.SetComponentData(clip, new TrackBinding { Value = binding });
+            Manager.SetComponentData(clip, data);
+            Manager.SetComponentEnabled<ClipActive>(clip, active);
+            Manager.SetComponentEnabled<ClipActivePrevious>(clip, activePrevious);
             return clip;
         }
 
         private Entity CreateTransformEntity()
         {
-            var entity = this.Manager.CreateEntity(typeof(LocalTransform), typeof(LocalToWorld));
-            this.Manager.SetComponentData(entity, LocalTransform.Identity);
-            this.Manager.SetComponentData(entity, new LocalToWorld { Value = float4x4.identity });
+            var entity = Manager.CreateEntity(typeof(LocalTransform), typeof(LocalToWorld));
+            Manager.SetComponentData(entity, LocalTransform.Identity);
+            Manager.SetComponentData(entity, new LocalToWorld { Value = float4x4.identity });
             return entity;
         }
     }

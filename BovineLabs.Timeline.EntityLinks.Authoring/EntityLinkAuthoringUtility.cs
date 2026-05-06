@@ -19,7 +19,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 return false;
 
             var binding = context.Director.GetGenericBinding(context.Track);
-            var target = binding as Component ?? (binding as GameObject)?.transform; 
+            var target = binding as Component ?? (binding as GameObject)?.transform;
 
             if (target == null)
                 return false;
@@ -51,23 +51,19 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
             // Check manually registered links first (schema lives on the source now)
             foreach (var source in root.Links)
-            {
                 if (source != null && source.HasSchema(schema))
                 {
                     linked = source;
                     return true;
                 }
-            }
 
             // Fall back to scanning all children
             foreach (var source in root.GetComponentsInChildren<EntityLinkSourceAuthoring>(true))
-            {
                 if (source.HasSchema(schema) && source.TryGetRoot(out var sourceRoot) && sourceRoot == root)
                 {
                     linked = source;
                     return true;
                 }
-            }
 
             return false;
         }

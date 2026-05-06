@@ -1,3 +1,4 @@
+using System;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.EntityLinks.Data;
 using NUnit.Framework;
@@ -107,7 +108,7 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkMutateMode_AllModesDistinct()
         {
-            var values = System.Enum.GetValues(typeof(EntityLinkMutateMode));
+            var values = Enum.GetValues(typeof(EntityLinkMutateMode));
             Assert.AreEqual(3, values.Length);
         }
 

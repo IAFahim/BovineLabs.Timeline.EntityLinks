@@ -9,7 +9,8 @@ namespace BovineLabs.Timeline.EntityLinks
     public static class EntityLinkResolver
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryResolveRoot(Entity entity, in UnsafeComponentLookup<EntityLinkSource> sources, out Entity root)
+        public static bool TryResolveRoot(Entity entity, in UnsafeComponentLookup<EntityLinkSource> sources,
+            out Entity root)
         {
             if (entity == Entity.Null)
             {
@@ -25,19 +26,16 @@ namespace BovineLabs.Timeline.EntityLinks
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryResolveFromRoot(Entity root, ushort key, in UnsafeBufferLookup<EntityLinkEntry> entries, out Entity result)
+        public static bool TryResolveFromRoot(Entity root, ushort key, in UnsafeBufferLookup<EntityLinkEntry> entries,
+            out Entity result)
         {
             if (root != Entity.Null && key != 0 && entries.TryGetBuffer(root, out var buffer))
-            {
-                for (int i = 0; i < buffer.Length; i++)
-                {
+                for (var i = 0; i < buffer.Length; i++)
                     if (buffer[i].Key == key)
                     {
                         result = buffer[i].Target;
                         return true;
                     }
-                }
-            }
 
             result = Entity.Null;
             return false;

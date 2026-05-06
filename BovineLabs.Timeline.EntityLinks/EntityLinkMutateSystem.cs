@@ -11,6 +11,8 @@ using Unity.Entities;
 namespace BovineLabs.Timeline.EntityLinks
 {
     [UpdateInGroup(typeof(TimelineComponentAnimationGroup))]
+    [UpdateBefore(typeof(EntityLinkTargetPatchSystem))]
+    [UpdateBefore(typeof(EntityLinkParentSystem))]
     public partial struct EntityLinkMutateSystem : ISystem
     {
         private ComponentLookup<Targets> targetsLookup;
@@ -23,34 +25,34 @@ namespace BovineLabs.Timeline.EntityLinks
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EntityLinkMutate>();
-            this.targetsLookup = state.GetComponentLookup<Targets>(true);
-            this.targetsCustoms = state.GetComponentLookup<TargetsCustom>(true);
-            this.sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
-            this.entries = state.GetUnsafeBufferLookup<EntityLinkEntry>(false);
-            this.entityLock = new EntityLock(Allocator.Persistent);
+            targetsLookup = state.GetComponentLookup<Targets>(true);
+            targetsCustoms = state.GetComponentLookup<TargetsCustom>(true);
+            sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
+            entries = state.GetUnsafeBufferLookup<EntityLinkEntry>();
+            entityLock = new EntityLock(Allocator.Persistent);
         }
 
         [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
-            this.entityLock.Dispose();
+            entityLock.Dispose();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            this.targetsLookup.Update(ref state);
-            this.targetsCustoms.Update(ref state);
-            this.sources.Update(ref state);
-            this.entries.Update(ref state);
+            targetsLookup.Update(ref state);
+            targetsCustoms.Update(ref state);
+            sources.Update(ref state);
+            entries.Update(ref state);
 
             state.Dependency = new MutateJob
             {
-                TargetsLookup = this.targetsLookup,
-                TargetsCustoms = this.targetsCustoms,
-                Sources = this.sources,
-                Entries = this.entries,
-                EntityLock = this.entityLock
+                TargetsLookup = targetsLookup,
+                TargetsCustoms = targetsCustoms,
+                Sources = sources,
+                Entries = entries,
+                EntityLock = entityLock
             }.ScheduleParallel(state.Dependency);
         }
 
@@ -63,38 +65,38 @@ namespace BovineLabs.Timeline.EntityLinks
             [ReadOnly] public ComponentLookup<TargetsCustom> TargetsCustoms;
             [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
 
-            [NativeDisableParallelForRestriction]
-            public UnsafeBufferLookup<EntityLinkEntry> Entries;
-            
+            [NativeDisableParallelForRestriction] public UnsafeBufferLookup<EntityLinkEntry> Entries;
+
             public EntityLock EntityLock;
 
             private void Execute(in TrackBinding binding, in EntityLinkMutate mutate)
             {
                 var bindingEntity = binding.Value;
-                if (bindingEntity == Entity.Null || !this.TargetsLookup.TryGetComponent(bindingEntity, out var targets)) return;
+                if (bindingEntity == Entity.Null ||
+                    !TargetsLookup.TryGetComponent(bindingEntity, out var targets)) return;
 
-                var rootCandidate = targets.Get(mutate.ReadRootFrom, bindingEntity, this.TargetsCustoms);
-                if (rootCandidate == Entity.Null || !EntityLinkResolver.TryResolveRoot(rootCandidate, this.Sources, out var root)) return;
+                var rootCandidate = targets.Get(mutate.ReadRootFrom, bindingEntity, TargetsCustoms);
+                if (rootCandidate == Entity.Null ||
+                    !EntityLinkResolver.TryResolveRoot(rootCandidate, Sources, out var root)) return;
 
-                using (this.EntityLock.Acquire(root))
+                using (EntityLock.Acquire(root))
                 {
-                    if (!this.Entries.TryGetBuffer(root, out var buffer)) return;
+                    if (!Entries.TryGetBuffer(root, out var buffer)) return;
 
                     switch (mutate.Mode)
                     {
                         case EntityLinkMutateMode.Assign:
                         {
-                            var newTarget = targets.Get(mutate.NewTarget, bindingEntity, this.TargetsCustoms);
+                            var newTarget = targets.Get(mutate.NewTarget, bindingEntity, TargetsCustoms);
                             var found = false;
                             for (var i = 0; i < buffer.Length; i++)
-                            {
                                 if (buffer[i].Key == mutate.LinkKey)
                                 {
                                     buffer[i] = new EntityLinkEntry { Key = mutate.LinkKey, Target = newTarget };
                                     found = true;
                                     break;
                                 }
-                            }
+
                             if (!found) buffer.Add(new EntityLinkEntry { Key = mutate.LinkKey, Target = newTarget });
                             break;
                         }
@@ -103,18 +105,18 @@ namespace BovineLabs.Timeline.EntityLinks
                         {
                             int idxA = -1, idxB = -1;
                             for (var i = 0; i < buffer.Length; i++)
-                            {
                                 if (buffer[i].Key == mutate.LinkKey) idxA = i;
                                 else if (buffer[i].Key == mutate.SwapKey) idxB = i;
-                            }
-                            
+
                             var targetA = idxA != -1 ? buffer[idxA].Target : Entity.Null;
                             var targetB = idxB != -1 ? buffer[idxB].Target : Entity.Null;
 
-                            if (idxA != -1) buffer[idxA] = new EntityLinkEntry { Key = mutate.LinkKey, Target = targetB };
+                            if (idxA != -1)
+                                buffer[idxA] = new EntityLinkEntry { Key = mutate.LinkKey, Target = targetB };
                             else buffer.Add(new EntityLinkEntry { Key = mutate.LinkKey, Target = targetB });
 
-                            if (idxB != -1) buffer[idxB] = new EntityLinkEntry { Key = mutate.SwapKey, Target = targetA };
+                            if (idxB != -1)
+                                buffer[idxB] = new EntityLinkEntry { Key = mutate.SwapKey, Target = targetA };
                             else buffer.Add(new EntityLinkEntry { Key = mutate.SwapKey, Target = targetA });
                             break;
                         }
@@ -122,10 +124,9 @@ namespace BovineLabs.Timeline.EntityLinks
                         case EntityLinkMutateMode.Remove:
                         {
                             for (var i = buffer.Length - 1; i >= 0; i--)
-                            {
                                 if (buffer[i].Key == mutate.LinkKey)
                                     buffer.RemoveAt(i);
-                            }
+
                             break;
                         }
                     }

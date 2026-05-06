@@ -24,7 +24,9 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             Entries.Update(ref state);
         }
 
-        public void OnDestroy(ref SystemState state) { }
+        public void OnDestroy(ref SystemState state)
+        {
+        }
     }
 
     public class EntityLinkResolverTests : ECSTestsFixture
@@ -46,7 +48,7 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void TryResolveRoot_NoSourceComponent_ReturnsEntityAsRoot()
         {
-            var entity = this.Manager.CreateEntity();
+            var entity = Manager.CreateEntity();
             InitLookups();
 
             Assert.IsTrue(EntityLinkResolver.TryResolveRoot(entity, LookupHelperSystem.Sources, out var root));
@@ -56,8 +58,8 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void TryResolveRoot_SourceWithNullRoot_ReturnsEntityAsRoot()
         {
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkSource { Root = Entity.Null });
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkSource { Root = Entity.Null });
             InitLookups();
 
             Assert.IsTrue(EntityLinkResolver.TryResolveRoot(entity, LookupHelperSystem.Sources, out var root));
@@ -67,9 +69,9 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void TryResolveRoot_SourceWithValidRoot_ReturnsRoot()
         {
-            var rootEntity = this.Manager.CreateEntity();
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkSource { Root = rootEntity });
+            var rootEntity = Manager.CreateEntity();
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkSource { Root = rootEntity });
             InitLookups();
 
             Assert.IsTrue(EntityLinkResolver.TryResolveRoot(entity, LookupHelperSystem.Sources, out var resolved));
@@ -80,34 +82,37 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         public void TryResolveFromRoot_NullRoot_ReturnsFalse()
         {
             InitLookups();
-            Assert.IsFalse(EntityLinkResolver.TryResolveFromRoot(Entity.Null, 1, LookupHelperSystem.Entries, out var result));
+            Assert.IsFalse(EntityLinkResolver.TryResolveFromRoot(Entity.Null, 1, LookupHelperSystem.Entries,
+                out var result));
             Assert.AreEqual(Entity.Null, result);
         }
 
         [Test]
         public void TryResolveFromRoot_ZeroKey_ReturnsFalse()
         {
-            var entity = this.Manager.CreateEntity();
+            var entity = Manager.CreateEntity();
             InitLookups();
-            Assert.IsFalse(EntityLinkResolver.TryResolveFromRoot(entity, 0, LookupHelperSystem.Entries, out var result));
+            Assert.IsFalse(
+                EntityLinkResolver.TryResolveFromRoot(entity, 0, LookupHelperSystem.Entries, out var result));
             Assert.AreEqual(Entity.Null, result);
         }
 
         [Test]
         public void TryResolveFromRoot_NoBuffer_ReturnsFalse()
         {
-            var entity = this.Manager.CreateEntity();
+            var entity = Manager.CreateEntity();
             InitLookups();
-            Assert.IsFalse(EntityLinkResolver.TryResolveFromRoot(entity, 1, LookupHelperSystem.Entries, out var result));
+            Assert.IsFalse(
+                EntityLinkResolver.TryResolveFromRoot(entity, 1, LookupHelperSystem.Entries, out var result));
             Assert.AreEqual(Entity.Null, result);
         }
 
         [Test]
         public void TryResolveFromRoot_BufferWithMatchingKey_ReturnsTarget()
         {
-            var target = this.Manager.CreateEntity();
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
+            var target = Manager.CreateEntity();
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
             buffer.Add(new EntityLinkEntry { Key = 1, Target = target });
             InitLookups();
 
@@ -118,45 +123,48 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void TryResolveFromRoot_BufferWithoutMatchingKey_ReturnsFalse()
         {
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
-            buffer.Add(new EntityLinkEntry { Key = 1, Target = this.Manager.CreateEntity() });
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
+            buffer.Add(new EntityLinkEntry { Key = 1, Target = Manager.CreateEntity() });
             InitLookups();
 
-            Assert.IsFalse(EntityLinkResolver.TryResolveFromRoot(entity, 2, LookupHelperSystem.Entries, out var result));
+            Assert.IsFalse(
+                EntityLinkResolver.TryResolveFromRoot(entity, 2, LookupHelperSystem.Entries, out var result));
             Assert.AreEqual(Entity.Null, result);
         }
 
         [Test]
         public void TryResolveFromRoot_MultipleEntries_FindsCorrectTarget()
         {
-            var t1 = this.Manager.CreateEntity();
-            var t2 = this.Manager.CreateEntity();
-            var t3 = this.Manager.CreateEntity();
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
+            var t1 = Manager.CreateEntity();
+            var t2 = Manager.CreateEntity();
+            var t3 = Manager.CreateEntity();
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
             buffer.Add(new EntityLinkEntry { Key = 10, Target = t1 });
             buffer.Add(new EntityLinkEntry { Key = 20, Target = t2 });
             buffer.Add(new EntityLinkEntry { Key = 30, Target = t3 });
             InitLookups();
 
-            Assert.IsTrue(EntityLinkResolver.TryResolveFromRoot(entity, 20, LookupHelperSystem.Entries, out var result));
+            Assert.IsTrue(
+                EntityLinkResolver.TryResolveFromRoot(entity, 20, LookupHelperSystem.Entries, out var result));
             Assert.AreEqual(t2, result);
         }
 
         [Test]
         public void TryResolve_CombinesRootAndKeyLookup()
         {
-            var target = this.Manager.CreateEntity();
-            var rootEntity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(rootEntity);
+            var target = Manager.CreateEntity();
+            var rootEntity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(rootEntity);
             buffer.Add(new EntityLinkEntry { Key = 5, Target = target });
 
-            var entity = this.Manager.CreateEntity();
-            this.Manager.AddComponentData(entity, new EntityLinkSource { Root = rootEntity });
+            var entity = Manager.CreateEntity();
+            Manager.AddComponentData(entity, new EntityLinkSource { Root = rootEntity });
             InitLookups();
 
-            Assert.IsTrue(EntityLinkResolver.TryResolve(entity, 5, LookupHelperSystem.Sources, LookupHelperSystem.Entries, out var result));
+            Assert.IsTrue(EntityLinkResolver.TryResolve(entity, 5, LookupHelperSystem.Sources,
+                LookupHelperSystem.Entries, out var result));
             Assert.AreEqual(target, result);
         }
 
@@ -164,32 +172,35 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         public void TryResolve_NullEntity_ReturnsFalse()
         {
             InitLookups();
-            Assert.IsFalse(EntityLinkResolver.TryResolve(Entity.Null, 1, LookupHelperSystem.Sources, LookupHelperSystem.Entries, out var result));
+            Assert.IsFalse(EntityLinkResolver.TryResolve(Entity.Null, 1, LookupHelperSystem.Sources,
+                LookupHelperSystem.Entries, out var result));
             Assert.AreEqual(Entity.Null, result);
         }
 
         [Test]
         public void TryResolve_EntityWithoutSource_UsesEntityAsRoot()
         {
-            var target = this.Manager.CreateEntity();
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
+            var target = Manager.CreateEntity();
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
             buffer.Add(new EntityLinkEntry { Key = 3, Target = target });
             InitLookups();
 
-            Assert.IsTrue(EntityLinkResolver.TryResolve(entity, 3, LookupHelperSystem.Sources, LookupHelperSystem.Entries, out var result));
+            Assert.IsTrue(EntityLinkResolver.TryResolve(entity, 3, LookupHelperSystem.Sources,
+                LookupHelperSystem.Entries, out var result));
             Assert.AreEqual(target, result);
         }
 
         [Test]
         public void TryResolve_KeyNotFound_ReturnsFalse()
         {
-            var entity = this.Manager.CreateEntity();
-            var buffer = this.Manager.AddBuffer<EntityLinkEntry>(entity);
-            buffer.Add(new EntityLinkEntry { Key = 1, Target = this.Manager.CreateEntity() });
+            var entity = Manager.CreateEntity();
+            var buffer = Manager.AddBuffer<EntityLinkEntry>(entity);
+            buffer.Add(new EntityLinkEntry { Key = 1, Target = Manager.CreateEntity() });
             InitLookups();
 
-            Assert.IsFalse(EntityLinkResolver.TryResolve(entity, 99, LookupHelperSystem.Sources, LookupHelperSystem.Entries, out var result));
+            Assert.IsFalse(EntityLinkResolver.TryResolve(entity, 99, LookupHelperSystem.Sources,
+                LookupHelperSystem.Entries, out var result));
             Assert.AreEqual(Entity.Null, result);
         }
     }

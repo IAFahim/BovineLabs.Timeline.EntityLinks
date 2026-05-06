@@ -109,7 +109,8 @@ namespace BovineLabs.Timeline.EntityLinks
                 if (resolvedParent != Entity.Null && LtwLookup.TryGetComponent(resolvedParent, out var parentLtw))
                 {
                     var childs = ChildLookup.HasBuffer(resolvedParent) ? ChildLookup[resolvedParent] : default;
-                    TransformUtility.SetupParent(ref commands, resolvedParent, entityToParent, parentLtw, childTransform, childs);
+                    TransformUtility.SetupParent(ref commands, resolvedParent, entityToParent, parentLtw,
+                        childTransform, childs);
                     state.ParentApplied = true;
                 }
 
@@ -138,14 +139,18 @@ namespace BovineLabs.Timeline.EntityLinks
                 if (!config.RestoreOnEnd || state.Target == Entity.Null || !state.ParentApplied)
                     return;
 
-                if (state.HadParent && state.PreviousParent != Entity.Null && LtwLookup.TryGetComponent(state.PreviousParent, out var parentLtw))
+                if (state.HadParent && state.PreviousParent != Entity.Null &&
+                    LtwLookup.TryGetComponent(state.PreviousParent, out var parentLtw))
                 {
                     var commands = new CommandBufferParallelCommands(ECB, sortKey, state.Target);
-                    var childs = ChildLookup.HasBuffer(state.PreviousParent) ? ChildLookup[state.PreviousParent] : default;
-                    
+                    var childs = ChildLookup.HasBuffer(state.PreviousParent)
+                        ? ChildLookup[state.PreviousParent]
+                        : default;
+
                     // Note: We don't have its current LocalTransform easily here to preserve world space perfectly, 
                     // but restoring the original Parent hierarchy prevents orphaned Transforms.
-                    TransformUtility.SetupParent(ref commands, state.PreviousParent, state.Target, parentLtw, LocalTransform.Identity, childs);
+                    TransformUtility.SetupParent(ref commands, state.PreviousParent, state.Target, parentLtw,
+                        LocalTransform.Identity, childs);
                 }
                 else
                 {
