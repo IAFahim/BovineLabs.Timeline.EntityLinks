@@ -1,5 +1,7 @@
 #if UNITY_EDITOR || BL_DEBUG
 using BovineLabs.Core;
+using BovineLabs.Core.ConfigVars;
+using System.Diagnostics.CodeAnalysis;
 using BovineLabs.Core.Extensions;
 using BovineLabs.Core.Iterators;
 using BovineLabs.Quill;
@@ -15,6 +17,20 @@ using UnityEngine;
 
 namespace BovineLabs.Timeline.EntityLinks.Debug
 {
+    [Configurable]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1611:Element parameters should be documented", Justification = "Using see cref")]
+    public static class EntityLinkDebugSystemConfig
+    {
+        private const string DrawForced = "entitylinkdebugsystem.force-draw";
+        private const string DrawGlobalDescEnabled = "Enable the drawer in the editor.";
+
+        [ConfigVar(DrawForced, false, DrawGlobalDescEnabled)]
+        internal static readonly SharedStatic<bool> Enabled =
+            SharedStatic<bool>.GetOrCreate<EntityLinkDebugSystemForced>();
+
+        private struct EntityLinkDebugSystemForced { }
+    }
+
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ServerSimulation |
                        WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.Editor)]
     [UpdateInGroup(typeof(DebugSystemGroup))]
@@ -33,8 +49,13 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
         public void OnUpdate(ref SystemState state)
         {
             _worldSpaceLookup.Update(ref state);
-            var drawer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer<EntityLinkDebugSystem>();
-            if(!drawer.IsEnabled) return;
+            Drawer drawer;
+            if (!EntityLinkDebugSystemConfig.Enabled.Data)
+            {
+                drawer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer<EntityLinkDebugSystem>();
+                if (!drawer.IsEnabled) return;
+            }
+            else drawer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer();
 
             state.Dependency = new RenderTransition
             {
