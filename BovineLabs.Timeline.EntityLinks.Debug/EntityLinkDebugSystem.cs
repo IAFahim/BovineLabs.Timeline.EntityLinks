@@ -45,17 +45,19 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
             state.RequireForUpdate<DrawSystem.Singleton>();
         }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             _worldSpaceLookup.Update(ref state);
+            if (!SystemAPI.HasSingleton<DrawSystem.Singleton>()) return;
+            ref var drawSystem = ref SystemAPI.GetSingletonRW<DrawSystem.Singleton>().ValueRW;
+
             Drawer drawer;
             if (!EntityLinkDebugSystemConfig.Enabled.Data)
             {
-                drawer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer<EntityLinkDebugSystem>();
+                drawer = drawSystem.CreateDrawer<EntityLinkDebugSystem>();
                 if (!drawer.IsEnabled) return;
             }
-            else drawer = SystemAPI.GetSingleton<DrawSystem.Singleton>().CreateDrawer();
+            else drawer = drawSystem.CreateDrawer();
 
             state.Dependency = new RenderTransition
             {
