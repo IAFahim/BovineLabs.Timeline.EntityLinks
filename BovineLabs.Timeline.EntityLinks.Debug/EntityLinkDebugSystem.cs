@@ -1,7 +1,7 @@
 #if UNITY_EDITOR || BL_DEBUG
+using System.Diagnostics.CodeAnalysis;
 using BovineLabs.Core;
 using BovineLabs.Core.ConfigVars;
-using System.Diagnostics.CodeAnalysis;
 using BovineLabs.Core.Extensions;
 using BovineLabs.Core.Iterators;
 using BovineLabs.Quill;
@@ -18,7 +18,8 @@ using UnityEngine;
 namespace BovineLabs.Timeline.EntityLinks.Debug
 {
     [Configurable]
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1611:Element parameters should be documented", Justification = "Using see cref")]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1611:Element parameters should be documented",
+        Justification = "Using see cref")]
     public static class EntityLinkDebugSystemConfig
     {
         private const string DrawForced = "entitylinkdebugsystem.force-draw";
@@ -28,7 +29,9 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
         internal static readonly SharedStatic<bool> Enabled =
             SharedStatic<bool>.GetOrCreate<EntityLinkDebugSystemForced>();
 
-        private struct EntityLinkDebugSystemForced { }
+        private struct EntityLinkDebugSystemForced
+        {
+        }
     }
 
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ServerSimulation |
@@ -57,7 +60,10 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
                 drawer = drawSystem.CreateDrawer<EntityLinkDebugSystem>();
                 if (!drawer.IsEnabled) return;
             }
-            else drawer = drawSystem.CreateDrawer();
+            else
+            {
+                drawer = drawSystem.CreateDrawer();
+            }
 
             state.Dependency = new RenderTransition
             {
