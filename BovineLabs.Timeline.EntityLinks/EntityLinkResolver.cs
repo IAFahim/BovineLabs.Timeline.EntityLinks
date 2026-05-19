@@ -64,12 +64,11 @@ namespace BovineLabs.Timeline.EntityLinks
             in Targets targets,
             Target readRootFrom,
             ushort key,
-            in ComponentLookup<TargetsCustom> targetsCustoms,
             in UnsafeComponentLookup<EntityLinkSource> sources,
             in UnsafeBufferLookup<EntityLinkEntry> entries,
             out Entity result)
         {
-            var rootCandidate = targets.Get(readRootFrom, self, targetsCustoms);
+            var rootCandidate = targets.Get(readRootFrom, self);
             if (rootCandidate == Entity.Null)
             {
                 result = Entity.Null;
@@ -84,14 +83,13 @@ namespace BovineLabs.Timeline.EntityLinks
             Entity self,
             in Targets targets,
             in EntityLinkTargetPatch patch,
-            in ComponentLookup<TargetsCustom> targetsCustoms,
             in UnsafeComponentLookup<EntityLinkSource> sources,
             in UnsafeBufferLookup<EntityLinkEntry> entries)
         {
-            if (TryResolve(self, targets, patch.ReadRootFrom, patch.LinkKey, targetsCustoms, sources, entries,
+            if (TryResolve(self, targets, patch.ReadRootFrom, patch.LinkKey, sources, entries,
                     out var linked)) return linked;
 
-            return targets.Get(patch.Fallback, self, targetsCustoms);
+            return targets.Get(patch.Fallback, self);
         }
     }
 }

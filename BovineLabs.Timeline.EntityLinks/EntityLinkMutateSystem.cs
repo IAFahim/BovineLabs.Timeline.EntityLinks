@@ -16,7 +16,6 @@ namespace BovineLabs.Timeline.EntityLinks
     public partial struct EntityLinkMutateSystem : ISystem
     {
         private ComponentLookup<Targets> _targetsLookup;
-        private ComponentLookup<TargetsCustom> _targetsCustoms;
         private UnsafeComponentLookup<EntityLinkSource> _sources;
         private UnsafeBufferLookup<EntityLinkEntry> _entries;
         private EntityLock _entityLock;
@@ -26,7 +25,6 @@ namespace BovineLabs.Timeline.EntityLinks
         {
             state.RequireForUpdate<EntityLinkMutate>();
             _targetsLookup = state.GetComponentLookup<Targets>(true);
-            _targetsCustoms = state.GetComponentLookup<TargetsCustom>(true);
             _sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
             _entries = state.GetUnsafeBufferLookup<EntityLinkEntry>();
             _entityLock = new EntityLock(Allocator.Persistent);
@@ -42,14 +40,12 @@ namespace BovineLabs.Timeline.EntityLinks
         public void OnUpdate(ref SystemState state)
         {
             _targetsLookup.Update(ref state);
-            _targetsCustoms.Update(ref state);
             _sources.Update(ref state);
             _entries.Update(ref state);
 
             state.Dependency = new MutateJob
             {
                 TargetsLookup = _targetsLookup,
-                TargetsCustoms = _targetsCustoms,
                 Sources = _sources,
                 Entries = _entries,
                 EntityLock = _entityLock
@@ -62,7 +58,6 @@ namespace BovineLabs.Timeline.EntityLinks
         private partial struct MutateJob : IJobEntity
         {
             [ReadOnly] public ComponentLookup<Targets> TargetsLookup;
-            [ReadOnly] public ComponentLookup<TargetsCustom> TargetsCustoms;
             [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
 
             [NativeDisableParallelForRestriction] public UnsafeBufferLookup<EntityLinkEntry> Entries;
@@ -75,7 +70,7 @@ namespace BovineLabs.Timeline.EntityLinks
                 if (bindingEntity == Entity.Null ||
                     !TargetsLookup.TryGetComponent(bindingEntity, out var targets)) return;
 
-                var rootCandidate = targets.Get(mutate.ReadRootFrom, bindingEntity, TargetsCustoms);
+                var rootCandidate = targets.Get(mutate.ReadRootFrom, bindingEntity);
                 if (rootCandidate == Entity.Null ||
                     !EntityLinkResolver.TryResolveRoot(rootCandidate, Sources, out var root)) return;
 
@@ -87,7 +82,7 @@ namespace BovineLabs.Timeline.EntityLinks
                     {
                         case EntityLinkMutateMode.Assign:
                         {
-                            var newTarget = targets.Get(mutate.NewTarget, bindingEntity, TargetsCustoms);
+                            var newTarget = targets.Get(mutate.NewTarget, bindingEntity);
                             var found = false;
                             for (var i = 0; i < buffer.Length; i++)
                                 if (buffer[i].Key == mutate.LinkKey)
