@@ -14,7 +14,6 @@ namespace BovineLabs.Timeline.EntityLinks
     public partial struct EntityLinkTargetPatchSystem : ISystem
     {
         private ComponentLookup<Targets> _targetsLookup;
-        private ComponentLookup<TargetsCustom> _targetsCustoms;
         private UnsafeComponentLookup<EntityLinkSource> _sources;
         private UnsafeBufferLookup<EntityLinkEntry> _links;
         private EntityLock _entityLock;
@@ -24,7 +23,6 @@ namespace BovineLabs.Timeline.EntityLinks
         {
             state.RequireForUpdate<EntityLinkTargetPatch>();
             _targetsLookup = state.GetComponentLookup<Targets>();
-            _targetsCustoms = state.GetComponentLookup<TargetsCustom>();
             _sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
             _links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true);
             _entityLock = new EntityLock(Allocator.Persistent);
@@ -40,14 +38,12 @@ namespace BovineLabs.Timeline.EntityLinks
         public void OnUpdate(ref SystemState state)
         {
             _targetsLookup.Update(ref state);
-            _targetsCustoms.Update(ref state);
             _sources.Update(ref state);
             _links.Update(ref state);
 
             state.Dependency = new PatchJob
             {
                 TargetsLookup = _targetsLookup,
-                TargetsCustoms = _targetsCustoms,
                 Sources = _sources,
                 Links = _links,
                 EntityLock = _entityLock,
@@ -62,8 +58,6 @@ namespace BovineLabs.Timeline.EntityLinks
         private partial struct PatchJob : IJobEntity
         {
             [NativeDisableParallelForRestriction] public ComponentLookup<Targets> TargetsLookup;
-
-            [NativeDisableParallelForRestriction] public ComponentLookup<TargetsCustom> TargetsCustoms;
 
             [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
             [ReadOnly] public UnsafeBufferLookup<EntityLinkEntry> Links;
@@ -82,7 +76,6 @@ namespace BovineLabs.Timeline.EntityLinks
                     bindingEntity,
                     targets,
                     patch,
-                    TargetsCustoms,
                     Sources,
                     Links);
 
@@ -109,39 +102,12 @@ namespace BovineLabs.Timeline.EntityLinks
                             TargetsLookup[bindingEntity] = targets;
                             break;
 
-                        case Target.Custom0:
-                            WriteCustom0(sortKey, bindingEntity, resolved);
-                            break;
-
-                        case Target.Custom1:
-                            WriteCustom1(sortKey, bindingEntity, resolved);
+                        case Target.Custom:
+                            targets.Custom = resolved;
+                            TargetsLookup[bindingEntity] = targets;
                             break;
                     }
                 }
-            }
-
-            private void WriteCustom0(int sortKey, Entity entity, Entity target)
-            {
-                if (TargetsCustoms.TryGetComponent(entity, out var custom))
-                {
-                    custom.Target0 = target;
-                    TargetsCustoms[entity] = custom;
-                    return;
-                }
-
-                ECB.AddComponent(sortKey, entity, new TargetsCustom { Target0 = target });
-            }
-
-            private void WriteCustom1(int sortKey, Entity entity, Entity target)
-            {
-                if (TargetsCustoms.TryGetComponent(entity, out var custom))
-                {
-                    custom.Target1 = target;
-                    TargetsCustoms[entity] = custom;
-                    return;
-                }
-
-                ECB.AddComponent(sortKey, entity, new TargetsCustom { Target1 = target });
             }
         }
     }

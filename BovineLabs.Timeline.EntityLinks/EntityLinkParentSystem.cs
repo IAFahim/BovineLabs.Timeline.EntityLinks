@@ -38,7 +38,6 @@ namespace BovineLabs.Timeline.EntityLinks
             state.Dependency = new EnterJob
             {
                 TargetsLookup = SystemAPI.GetComponentLookup<Targets>(true),
-                TargetsCustoms = SystemAPI.GetComponentLookup<TargetsCustom>(true),
                 Sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true),
                 Links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true),
                 LtwLookup = _ltwLookup,
@@ -62,7 +61,6 @@ namespace BovineLabs.Timeline.EntityLinks
         private partial struct EnterJob : IJobEntity
         {
             [ReadOnly] public ComponentLookup<Targets> TargetsLookup;
-            [ReadOnly] public ComponentLookup<TargetsCustom> TargetsCustoms;
             [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
             [ReadOnly] public UnsafeBufferLookup<EntityLinkEntry> Links;
             [ReadOnly] public ComponentLookup<LocalToWorld> LtwLookup;
@@ -85,11 +83,11 @@ namespace BovineLabs.Timeline.EntityLinks
                 if (!TargetsLookup.TryGetComponent(bindingEntity, out var targets))
                     return;
 
-                var entityToParent = targets.Get(config.EntityToParent, bindingEntity, TargetsCustoms);
+                var entityToParent = targets.Get(config.EntityToParent, bindingEntity);
                 if (entityToParent == Entity.Null)
                     return;
 
-                var rootCandidate = targets.Get(config.ReadRootFrom, bindingEntity, TargetsCustoms);
+                var rootCandidate = targets.Get(config.ReadRootFrom, bindingEntity);
                 if (rootCandidate == Entity.Null)
                     return;
 

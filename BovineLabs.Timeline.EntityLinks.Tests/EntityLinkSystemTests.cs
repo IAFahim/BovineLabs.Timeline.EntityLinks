@@ -121,7 +121,7 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         }
 
         [Test]
-        public void EntityLinkTargetPatchSystem_WriteCustom_AddsTargetsCustom()
+        public void EntityLinkTargetPatchSystem_WriteCustom_SetsTargetsCustom()
         {
             var ecbSystem = World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
             var system = World.CreateSystem<EntityLinkTargetPatchSystem>();
@@ -133,7 +133,7 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             {
                 ReadRootFrom = Target.Source,
                 LinkKey = 6,
-                WriteTo = Target.Custom0,
+                WriteTo = Target.Custom,
                 Fallback = Target.None
             });
 
@@ -141,8 +141,7 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             ecbSystem.Update(WorldUnmanaged);
             Manager.CompleteAllTrackedJobs();
 
-            Assert.IsTrue(Manager.HasComponent<TargetsCustom>(binding));
-            Assert.AreEqual(linked, Manager.GetComponentData<TargetsCustom>(binding).Target0);
+            Assert.AreEqual(linked, Manager.GetComponentData<Targets>(binding).Custom);
             World.DestroySystem(system);
             World.DestroySystem(ecbSystem);
         }
