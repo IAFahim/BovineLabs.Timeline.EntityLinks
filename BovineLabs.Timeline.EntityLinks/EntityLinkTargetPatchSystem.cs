@@ -11,6 +11,7 @@ using Unity.Entities;
 namespace BovineLabs.Timeline.EntityLinks
 {
     [UpdateInGroup(typeof(TimelineComponentAnimationGroup))]
+    [Unity.Entities.WorldSystemFilter(Unity.Entities.WorldSystemFilterFlags.LocalSimulation | Unity.Entities.WorldSystemFilterFlags.ClientSimulation | Unity.Entities.WorldSystemFilterFlags.ServerSimulation)]
     public partial struct EntityLinkTargetPatchSystem : ISystem
     {
         private ComponentLookup<Targets> _targetsLookup;

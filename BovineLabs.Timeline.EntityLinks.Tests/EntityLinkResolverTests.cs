@@ -7,6 +7,7 @@ using Unity.Entities;
 
 namespace BovineLabs.Timeline.EntityLinks.Tests
 {
+    [Unity.Entities.WorldSystemFilter(Unity.Entities.WorldSystemFilterFlags.LocalSimulation | Unity.Entities.WorldSystemFilterFlags.ClientSimulation | Unity.Entities.WorldSystemFilterFlags.ServerSimulation)]
     public partial struct LookupHelperSystem : ISystem
     {
         public static UnsafeComponentLookup<EntityLinkSource> Sources;
