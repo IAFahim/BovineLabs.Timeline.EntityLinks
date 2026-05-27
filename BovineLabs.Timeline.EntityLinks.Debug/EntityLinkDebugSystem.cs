@@ -6,6 +6,7 @@ using BovineLabs.Core.Extensions;
 using BovineLabs.Core.Iterators;
 using BovineLabs.Quill;
 using BovineLabs.Reaction.Data.Core;
+using BovineLabs.Timeline.Core.Debug;
 using BovineLabs.Timeline.Data;
 using Unity.Burst;
 using Unity.Collections;
@@ -22,15 +23,14 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
         Justification = "Using see cref")]
     public static class EntityLinkDebugSystemConfig
     {
-        private const string DrawForced = "entitylinkdebugsystem.force-draw";
-        private const string DrawGlobalDescEnabled = "Enable the drawer in the editor.";
+        [ConfigVar("bovinelabs.entitylinkdebugsystem.draw-enabled", false,
+            "Enable the Entity Link debug drawer in the editor.")]
+        public static readonly SharedStatic<bool> Enabled =
+            SharedStatic<bool>.GetOrCreate<Tags.Enabled>();
 
-        [ConfigVar(DrawForced, false, DrawGlobalDescEnabled)]
-        internal static readonly SharedStatic<bool> Enabled =
-            SharedStatic<bool>.GetOrCreate<EntityLinkDebugSystemForced>();
-
-        private struct EntityLinkDebugSystemForced
+        private struct Tags
         {
+            public struct Enabled { }
         }
     }
 
@@ -51,19 +51,10 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
         public void OnUpdate(ref SystemState state)
         {
             _worldSpaceLookup.Update(ref state);
-            if (!SystemAPI.HasSingleton<DrawSystem.Singleton>()) return;
-            ref var drawSystem = ref SystemAPI.GetSingletonRW<DrawSystem.Singleton>().ValueRW;
 
-            Drawer drawer;
-            if (!EntityLinkDebugSystemConfig.Enabled.Data)
-            {
-                drawer = drawSystem.CreateDrawer<EntityLinkDebugSystem>();
-                if (!drawer.IsEnabled) return;
-            }
-            else
-            {
-                drawer = drawSystem.CreateDrawer();
-            }
+            if (!TimelineDebugUtility.TryGetDrawer<EntityLinkDebugSystem>(
+                    ref state, EntityLinkDebugSystemConfig.Enabled.Data, out var drawer))
+                return;
 
             state.Dependency = new RenderTransition
             {
@@ -94,8 +85,7 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
 
             private unsafe void RenderManifold(float3 origin, float3 destination, byte domain)
             {
-                var hue = domain * 0.618033988749895f % 1.0f;
-                var tint = Color.HSVToRGB(hue, 0.8f, 0.9f);
+                var tint = domain == 0 ? TimelineDebugColors.TargetLink : TimelineDebugColors.SourceLink;
                 var span = math.distance(origin, destination);
                 var apex = (origin + destination) * 0.5f;
                 apex.y += span * 0.2f;
