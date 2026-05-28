@@ -48,6 +48,7 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
             state.RequireForUpdate<DrawSystem.Singleton>();
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             _worldSpaceLookup.Update(ref state);
