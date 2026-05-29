@@ -54,7 +54,7 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
             _worldSpaceLookup.Update(ref state);
 
             if (!TimelineDebugUtility.TryGetDrawer<EntityLinkDebugSystem>(
-                    ref state, EntityLinkDebugSystemConfig.Enabled.Data, out var drawer))
+                  ref state, EntityLinkDebugSystemConfig.Enabled.Data, out var drawer))
                 return;
 
             state.Dependency = new RenderTransition
