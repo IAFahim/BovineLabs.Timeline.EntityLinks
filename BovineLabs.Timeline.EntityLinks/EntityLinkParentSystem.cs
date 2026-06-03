@@ -38,7 +38,7 @@ namespace BovineLabs.Timeline.EntityLinks
 
             state.Dependency = new EnterJob
             {
-                TargetsLookup = SystemAPI.GetComponentLookup<Targets>(true),
+                TargetsLookup = state.GetUnsafeComponentLookup<Targets>(true),
                 Sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true),
                 Links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true),
                 LtwLookup = _ltwLookup,
@@ -61,7 +61,7 @@ namespace BovineLabs.Timeline.EntityLinks
         [WithDisabled(typeof(ClipActivePrevious))]
         private partial struct EnterJob : IJobEntity
         {
-            [ReadOnly] public ComponentLookup<Targets> TargetsLookup;
+            [ReadOnly] public UnsafeComponentLookup<Targets> TargetsLookup;
             [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
             [ReadOnly] public UnsafeBufferLookup<EntityLinkEntry> Links;
             [ReadOnly] public ComponentLookup<LocalToWorld> LtwLookup;

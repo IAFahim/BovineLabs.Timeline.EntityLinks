@@ -16,7 +16,7 @@ namespace BovineLabs.Timeline.EntityLinks
     [Unity.Entities.WorldSystemFilter(Unity.Entities.WorldSystemFilterFlags.LocalSimulation | Unity.Entities.WorldSystemFilterFlags.ClientSimulation | Unity.Entities.WorldSystemFilterFlags.ServerSimulation)]
     public partial struct EntityLinkMutateSystem : ISystem
     {
-        private ComponentLookup<Targets> _targetsLookup;
+        private UnsafeComponentLookup<Targets> _targetsLookup;
         private UnsafeComponentLookup<EntityLinkSource> _sources;
         private UnsafeBufferLookup<EntityLinkEntry> _entries;
         private EntityLock _entityLock;
@@ -25,7 +25,7 @@ namespace BovineLabs.Timeline.EntityLinks
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EntityLinkMutate>();
-            _targetsLookup = state.GetComponentLookup<Targets>(true);
+            _targetsLookup = state.GetUnsafeComponentLookup<Targets>(true);
             _sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
             _entries = state.GetUnsafeBufferLookup<EntityLinkEntry>();
             _entityLock = new EntityLock(Allocator.Persistent);
@@ -58,7 +58,7 @@ namespace BovineLabs.Timeline.EntityLinks
         [WithDisabled(typeof(ClipActivePrevious))]
         private partial struct MutateJob : IJobEntity
         {
-            [ReadOnly] public ComponentLookup<Targets> TargetsLookup;
+            [ReadOnly] public UnsafeComponentLookup<Targets> TargetsLookup;
             [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
 
             [NativeDisableParallelForRestriction] public UnsafeBufferLookup<EntityLinkEntry> Entries;

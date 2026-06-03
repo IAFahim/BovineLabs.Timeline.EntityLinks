@@ -14,7 +14,7 @@ namespace BovineLabs.Timeline.EntityLinks
     [Unity.Entities.WorldSystemFilter(Unity.Entities.WorldSystemFilterFlags.LocalSimulation | Unity.Entities.WorldSystemFilterFlags.ClientSimulation | Unity.Entities.WorldSystemFilterFlags.ServerSimulation)]
     public partial struct EntityLinkTargetPatchSystem : ISystem
     {
-        private ComponentLookup<Targets> _targetsLookup;
+        private UnsafeComponentLookup<Targets> _targetsLookup;
         private UnsafeComponentLookup<EntityLinkSource> _sources;
         private UnsafeBufferLookup<EntityLinkEntry> _links;
         private EntityLock _entityLock;
@@ -23,7 +23,7 @@ namespace BovineLabs.Timeline.EntityLinks
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EntityLinkTargetPatch>();
-            _targetsLookup = state.GetComponentLookup<Targets>();
+            _targetsLookup = state.GetUnsafeComponentLookup<Targets>();
             _sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
             _links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true);
             _entityLock = new EntityLock(Allocator.Persistent);
@@ -58,7 +58,7 @@ namespace BovineLabs.Timeline.EntityLinks
         [WithDisabled(typeof(ClipActivePrevious))]
         private partial struct PatchJob : IJobEntity
         {
-            [NativeDisableParallelForRestriction] public ComponentLookup<Targets> TargetsLookup;
+            [NativeDisableParallelForRestriction] public UnsafeComponentLookup<Targets> TargetsLookup;
 
             [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
             [ReadOnly] public UnsafeBufferLookup<EntityLinkEntry> Links;

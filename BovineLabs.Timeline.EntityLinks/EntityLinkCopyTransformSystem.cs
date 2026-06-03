@@ -37,7 +37,7 @@ namespace BovineLabs.Timeline.EntityLinks
 
             state.Dependency = new CopyTransformJob
             {
-                TargetsLookup = SystemAPI.GetComponentLookup<Targets>(true),
+                TargetsLookup = state.GetUnsafeComponentLookup<Targets>(true),
                 Sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true),
                 Links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true),
                 LtwLookup = this.ltwLookup,
@@ -50,7 +50,7 @@ namespace BovineLabs.Timeline.EntityLinks
         [WithAll(typeof(ClipActive))]
         private partial struct CopyTransformJob : IJobEntity
         {
-            [ReadOnly] public ComponentLookup<Targets> TargetsLookup;
+            [ReadOnly] public UnsafeComponentLookup<Targets> TargetsLookup;
             [ReadOnly] public UnsafeComponentLookup<EntityLinkSource> Sources;
             [ReadOnly] public UnsafeBufferLookup<EntityLinkEntry> Links;
             [ReadOnly] public ComponentLookup<LocalToWorld> LtwLookup;
