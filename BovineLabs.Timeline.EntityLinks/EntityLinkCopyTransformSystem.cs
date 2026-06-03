@@ -87,12 +87,10 @@ namespace BovineLabs.Timeline.EntityLinks
 
                 var targetTransform = this.LocalTransformLookup[entityToMove];
 
-                // Calculate desired world transform (Extracting rotation from float4x4 gracefully)
                 var sourceWorldTransform = LocalTransform.FromMatrix(sourceLtw.Value);
                 var desiredWorldPos = sourceWorldTransform.Position;
                 var desiredWorldRot = sourceWorldTransform.Rotation;
 
-                // Apply offset in source's local space
                 if (config.CopyPosition && math.lengthsq(config.PositionOffset) > 0)
                 {
                     desiredWorldPos += math.rotate(desiredWorldRot, config.PositionOffset);
@@ -103,7 +101,6 @@ namespace BovineLabs.Timeline.EntityLinks
                     desiredWorldRot = math.mul(desiredWorldRot, config.RotationOffset);
                 }
 
-                // If target has a parent, we must convert the desired world space into local space
                 if (this.ParentLookup.TryGetComponent(entityToMove, out var parent) &&
                     this.LtwLookup.TryGetComponent(parent.Value, out var parentLtw))
                 {

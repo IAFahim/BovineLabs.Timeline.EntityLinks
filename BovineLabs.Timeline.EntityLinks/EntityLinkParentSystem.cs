@@ -146,8 +146,6 @@ namespace BovineLabs.Timeline.EntityLinks
                         ? ChildLookup[state.PreviousParent]
                         : default;
 
-                    // Note: We don't have its current LocalTransform easily here to preserve world space perfectly, 
-                    // but restoring the original Parent hierarchy prevents orphaned Transforms.
                     TransformUtility.SetupParent(ref commands, state.PreviousParent, state.Target, parentLtw,
                         LocalTransform.Identity, childs);
                 }
