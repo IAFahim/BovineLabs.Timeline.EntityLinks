@@ -2,6 +2,7 @@ using BovineLabs.Core.Authoring.EntityCommands;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Authoring;
 using BovineLabs.Timeline.EntityLinks.Data;
+using BovineLabs.Timeline.EntityLinks.Data.Builders;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Timeline;
@@ -20,8 +21,6 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
         public override void Bake(Entity clipEntity, BakingContext context)
         {
-            var commands = new BakerCommands(context.Baker, clipEntity);
-
             if (!EntityLinkAuthoringUtility.TryGetKey(Link, out var key))
             {
                 Debug.LogError($"{nameof(EntityLinkTargetPatchClip)} '{name}' missing link schema.");
@@ -34,13 +33,15 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 return;
             }
 
-            commands.AddComponent(new EntityLinkTargetPatch
+            var builder = new EntityLinkTargetPatchBuilder
             {
                 ReadRootFrom = ReadRootFrom,
                 LinkKey = key,
                 WriteTo = WriteTo,
                 Fallback = Fallback
-            });
+            };
+            var commands = new BakerCommands(context.Baker, clipEntity);
+            builder.ApplyTo(ref commands);
 
             base.Bake(clipEntity, context);
         }

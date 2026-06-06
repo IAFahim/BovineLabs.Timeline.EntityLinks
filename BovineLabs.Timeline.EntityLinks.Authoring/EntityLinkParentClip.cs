@@ -2,6 +2,7 @@ using BovineLabs.Core.Authoring.EntityCommands;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Authoring;
 using BovineLabs.Timeline.EntityLinks.Data;
+using BovineLabs.Timeline.EntityLinks.Data.Builders;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -29,15 +30,13 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
         public override void Bake(Entity clipEntity, BakingContext context)
         {
-            var commands = new BakerCommands(context.Baker, clipEntity);
-
             if (!EntityLinkAuthoringUtility.TryGetKey(parentLink, out var key))
             {
                 Debug.LogError($"{nameof(EntityLinkParentClip)} '{name}' missing parent link.");
                 return;
             }
 
-            commands.AddComponent(new EntityLinkParentData
+            var builder = new EntityLinkParentBuilder
             {
                 EntityToParent = entityToParent,
                 ReadRootFrom = readRootFrom,
@@ -45,9 +44,9 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 LocalPosition = localPosition,
                 LocalRotation = quaternion.Euler(math.radians(localRotation)),
                 RestoreOnEnd = restoreOnEnd
-            });
-
-            commands.AddComponent<EntityLinkParentState>();
+            };
+            var commands = new BakerCommands(context.Baker, clipEntity);
+            builder.ApplyTo(ref commands);
 
             base.Bake(clipEntity, context);
         }

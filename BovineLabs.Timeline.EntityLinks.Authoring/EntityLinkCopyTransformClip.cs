@@ -2,6 +2,7 @@ using BovineLabs.Core.Authoring.EntityCommands;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Authoring;
 using BovineLabs.Timeline.EntityLinks.Data;
+using BovineLabs.Timeline.EntityLinks.Data.Builders;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -30,15 +31,13 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
         public override void Bake(Entity clipEntity, BakingContext context)
         {
-            var commands = new BakerCommands(context.Baker, clipEntity);
-
             if (!EntityLinkAuthoringUtility.TryGetKey(this.link, out var key))
             {
                 Debug.LogError($"{nameof(EntityLinkCopyTransformClip)} '{this.name}' missing link schema.");
                 return;
             }
 
-            commands.AddComponent(new EntityLinkCopyTransform
+            var builder = new EntityLinkCopyTransformBuilder
             {
                 EntityToMove = this.entityToMove,
                 ReadRootFrom = this.readRootFrom,
@@ -47,7 +46,9 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 CopyRotation = this.copyRotation,
                 PositionOffset = this.positionOffset,
                 RotationOffset = quaternion.Euler(math.radians(this.rotationOffset))
-            });
+            };
+            var commands = new BakerCommands(context.Baker, clipEntity);
+            builder.ApplyTo(ref commands);
 
             base.Bake(clipEntity, context);
         }
