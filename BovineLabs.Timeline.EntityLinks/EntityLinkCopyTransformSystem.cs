@@ -35,6 +35,8 @@ namespace BovineLabs.Timeline.EntityLinks
             this.localTransformLookup.Update(ref state);
             this.parentLookup.Update(ref state);
 
+            var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
+
             state.Dependency = new CopyTransformJob
             {
                 TargetsLookup = state.GetUnsafeComponentLookup<Targets>(true),
@@ -55,11 +57,10 @@ namespace BovineLabs.Timeline.EntityLinks
             [ReadOnly] public UnsafeBufferLookup<EntityLinkEntry> Links;
             [ReadOnly] public ComponentLookup<LocalToWorld> LtwLookup;
             [ReadOnly] public ComponentLookup<Parent> ParentLookup;
+            [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
+            public EntityCommandBuffer.ParallelWriter ECB;
 
-            [NativeDisableParallelForRestriction]
-            public ComponentLookup<LocalTransform> LocalTransformLookup;
-
-            private void Execute(in TrackBinding binding, in EntityLinkCopyTransform config)
+            private void Execute([EntityIndexInQuery] int sortKey, in TrackBinding binding, in EntityLinkCopyTransform config)
             {
                 var bindingEntity = binding.Value;
                 if (bindingEntity == Entity.Null || !this.TargetsLookup.TryGetComponent(bindingEntity, out var targets))
@@ -130,7 +131,7 @@ namespace BovineLabs.Timeline.EntityLinks
                     }
                 }
 
-                this.LocalTransformLookup[entityToMove] = targetTransform;
+                this.ECB.SetComponent(sortKey, entityToMove, targetTransform);
             }
         }
     }
