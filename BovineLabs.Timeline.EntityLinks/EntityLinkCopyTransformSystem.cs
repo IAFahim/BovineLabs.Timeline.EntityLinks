@@ -12,7 +12,8 @@ using Unity.Transforms;
 namespace BovineLabs.Timeline.EntityLinks
 {
     [UpdateInGroup(typeof(TimelineComponentAnimationGroup))]
-    [Unity.Entities.WorldSystemFilter(Unity.Entities.WorldSystemFilterFlags.LocalSimulation | Unity.Entities.WorldSystemFilterFlags.ClientSimulation | Unity.Entities.WorldSystemFilterFlags.ServerSimulation)]
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation |
+                       WorldSystemFilterFlags.ServerSimulation)]
     public partial struct EntityLinkCopyTransformSystem : ISystem
     {
         private ComponentLookup<LocalToWorld> ltwLookup;
@@ -23,28 +24,29 @@ namespace BovineLabs.Timeline.EntityLinks
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EntityLinkCopyTransform>();
-            this.ltwLookup = state.GetComponentLookup<LocalToWorld>(true);
-            this.localTransformLookup = state.GetComponentLookup<LocalTransform>(false);
-            this.parentLookup = state.GetComponentLookup<Parent>(true);
+            ltwLookup = state.GetComponentLookup<LocalToWorld>(true);
+            localTransformLookup = state.GetComponentLookup<LocalTransform>();
+            parentLookup = state.GetComponentLookup<Parent>(true);
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            this.ltwLookup.Update(ref state);
-            this.localTransformLookup.Update(ref state);
-            this.parentLookup.Update(ref state);
+            ltwLookup.Update(ref state);
+            localTransformLookup.Update(ref state);
+            parentLookup.Update(ref state);
 
-            var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
+            var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
             state.Dependency = new CopyTransformJob
             {
                 TargetsLookup = state.GetUnsafeComponentLookup<Targets>(true),
                 Sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true),
                 Links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true),
-                LtwLookup = this.ltwLookup,
-                LocalTransformLookup = this.localTransformLookup,
-                ParentLookup = this.parentLookup
+                LtwLookup = ltwLookup,
+                LocalTransformLookup = localTransformLookup,
+                ParentLookup = parentLookup
             }.ScheduleParallel(state.Dependency);
         }
 
@@ -60,78 +62,61 @@ namespace BovineLabs.Timeline.EntityLinks
             [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
             public EntityCommandBuffer.ParallelWriter ECB;
 
-            private void Execute([EntityIndexInQuery] int sortKey, in TrackBinding binding, in EntityLinkCopyTransform config)
+            private void Execute([EntityIndexInQuery] int sortKey, in TrackBinding binding,
+                in EntityLinkCopyTransform config)
             {
                 var bindingEntity = binding.Value;
-                if (bindingEntity == Entity.Null || !this.TargetsLookup.TryGetComponent(bindingEntity, out var targets))
-                {
-                    return;
-                }
+                if (bindingEntity == Entity.Null ||
+                    !TargetsLookup.TryGetComponent(bindingEntity, out var targets)) return;
 
                 var entityToMove = targets.Get(config.EntityToMove, bindingEntity);
-                if (entityToMove == Entity.Null || !this.LocalTransformLookup.HasComponent(entityToMove))
-                {
-                    return;
-                }
+                if (entityToMove == Entity.Null || !LocalTransformLookup.HasComponent(entityToMove)) return;
 
                 var resolvedSource = EntityLinkResolver.ResolveOrFallback(
                     bindingEntity,
                     targets,
-                    new EntityLinkTargetPatch { ReadRootFrom = config.ReadRootFrom, LinkKey = config.LinkKey, Fallback = Target.None },
-                    this.Sources,
-                    this.Links);
+                    new EntityLinkTargetPatch
+                        { ReadRootFrom = config.ReadRootFrom, LinkKey = config.LinkKey, Fallback = Target.None },
+                    Sources,
+                    Links);
 
-                if (resolvedSource == Entity.Null || !this.LtwLookup.TryGetComponent(resolvedSource, out var sourceLtw))
-                {
-                    return;
-                }
+                if (resolvedSource == Entity.Null ||
+                    !LtwLookup.TryGetComponent(resolvedSource, out var sourceLtw)) return;
 
-                var targetTransform = this.LocalTransformLookup[entityToMove];
+                var targetTransform = LocalTransformLookup[entityToMove];
 
                 var sourceWorldTransform = LocalTransform.FromMatrix(sourceLtw.Value);
                 var desiredWorldPos = sourceWorldTransform.Position;
                 var desiredWorldRot = sourceWorldTransform.Rotation;
 
                 if (config.CopyPosition && math.lengthsq(config.PositionOffset) > 0)
-                {
                     desiredWorldPos += math.rotate(desiredWorldRot, config.PositionOffset);
-                }
 
                 if (config.CopyRotation && !config.RotationOffset.Equals(quaternion.identity))
-                {
                     desiredWorldRot = math.mul(desiredWorldRot, config.RotationOffset);
-                }
 
-                if (this.ParentLookup.TryGetComponent(entityToMove, out var parent) &&
-                    this.LtwLookup.TryGetComponent(parent.Value, out var parentLtw))
+                if (ParentLookup.TryGetComponent(entityToMove, out var parent) &&
+                    LtwLookup.TryGetComponent(parent.Value, out var parentLtw))
                 {
                     var parentInverse = math.inverse(parentLtw.Value);
 
-                    if (config.CopyPosition)
-                    {
-                        targetTransform.Position = math.transform(parentInverse, desiredWorldPos);
-                    }
+                    if (config.CopyPosition) targetTransform.Position = math.transform(parentInverse, desiredWorldPos);
 
                     if (config.CopyRotation)
                     {
                         var parentWorldTransform = LocalTransform.FromMatrix(parentLtw.Value);
-                        targetTransform.Rotation = math.mul(math.inverse(parentWorldTransform.Rotation), desiredWorldRot);
+                        targetTransform.Rotation =
+                            math.mul(math.inverse(parentWorldTransform.Rotation), desiredWorldRot);
                     }
                 }
                 else
                 {
-                    if (config.CopyPosition)
-                    {
-                        targetTransform.Position = desiredWorldPos;
-                    }
+                    if (config.CopyPosition) targetTransform.Position = desiredWorldPos;
 
-                    if (config.CopyRotation)
-                    {
-                        targetTransform.Rotation = desiredWorldRot;
-                    }
+                    if (config.CopyRotation) targetTransform.Rotation = desiredWorldRot;
                 }
 
-                this.ECB.SetComponent(sortKey, entityToMove, targetTransform);
+                ECB.SetComponent(sortKey, entityToMove, targetTransform);
             }
         }
     }

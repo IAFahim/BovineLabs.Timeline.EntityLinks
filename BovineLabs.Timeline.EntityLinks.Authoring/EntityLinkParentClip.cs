@@ -1,7 +1,6 @@
 using BovineLabs.Core.Authoring.EntityCommands;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Authoring;
-using BovineLabs.Timeline.EntityLinks.Data;
 using BovineLabs.Timeline.EntityLinks.Data.Builders;
 using Unity.Entities;
 using Unity.Mathematics;

@@ -14,7 +14,6 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace BovineLabs.Timeline.EntityLinks.Debug
 {
@@ -30,7 +29,9 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
 
         private struct Tags
         {
-            public struct Enabled { }
+            public struct Enabled
+            {
+            }
         }
     }
 
@@ -54,7 +55,7 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
             _worldSpaceLookup.Update(ref state);
 
             if (!TimelineDebugUtility.TryGetDrawer<EntityLinkDebugSystem>(
-                  ref state, EntityLinkDebugSystemConfig.Enabled.Data, out var drawer))
+                    ref state, EntityLinkDebugSystemConfig.Enabled.Data, out var drawer))
                 return;
 
             state.Dependency = new RenderTransition

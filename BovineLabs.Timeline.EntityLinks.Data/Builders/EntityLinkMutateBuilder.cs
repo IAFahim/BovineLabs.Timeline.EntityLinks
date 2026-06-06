@@ -1,6 +1,5 @@
 using BovineLabs.Core.EntityCommands;
 using BovineLabs.Reaction.Data.Core;
-using BovineLabs.Timeline.EntityLinks.Data;
 
 namespace BovineLabs.Timeline.EntityLinks.Data.Builders
 {

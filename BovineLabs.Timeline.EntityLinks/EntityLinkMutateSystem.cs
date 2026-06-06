@@ -13,7 +13,8 @@ namespace BovineLabs.Timeline.EntityLinks
     [UpdateInGroup(typeof(TimelineComponentAnimationGroup))]
     [UpdateBefore(typeof(EntityLinkTargetPatchSystem))]
     [UpdateBefore(typeof(EntityLinkParentSystem))]
-    [Unity.Entities.WorldSystemFilter(Unity.Entities.WorldSystemFilterFlags.LocalSimulation | Unity.Entities.WorldSystemFilterFlags.ClientSimulation | Unity.Entities.WorldSystemFilterFlags.ServerSimulation)]
+    [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation |
+                       WorldSystemFilterFlags.ServerSimulation)]
     public partial struct EntityLinkMutateSystem : ISystem
     {
         private UnsafeComponentLookup<Targets> _targetsLookup;
