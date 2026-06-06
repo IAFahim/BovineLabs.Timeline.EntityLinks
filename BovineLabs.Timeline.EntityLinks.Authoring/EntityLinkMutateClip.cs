@@ -1,3 +1,4 @@
+using BovineLabs.Core.Authoring.EntityCommands;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Authoring;
 using BovineLabs.Timeline.EntityLinks.Data;
@@ -26,6 +27,8 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
         public override void Bake(Entity clipEntity, BakingContext context)
         {
+            var commands = new BakerCommands(context.Baker, clipEntity);
+
             if (!EntityLinkAuthoringUtility.TryGetKey(link, out var key))
             {
                 Debug.LogError($"{nameof(EntityLinkMutateClip)} '{name}' missing link schema.");
@@ -34,7 +37,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
             EntityLinkAuthoringUtility.TryGetKey(swapLink, out var swapKey);
 
-            context.Baker.AddComponent(clipEntity, new EntityLinkMutate
+            commands.AddComponent(new EntityLinkMutate
             {
                 Mode = mode,
                 ReadRootFrom = readRootFrom,

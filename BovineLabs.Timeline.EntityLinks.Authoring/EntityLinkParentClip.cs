@@ -1,3 +1,4 @@
+using BovineLabs.Core.Authoring.EntityCommands;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Authoring;
 using BovineLabs.Timeline.EntityLinks.Data;
@@ -28,13 +29,15 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
         public override void Bake(Entity clipEntity, BakingContext context)
         {
+            var commands = new BakerCommands(context.Baker, clipEntity);
+
             if (!EntityLinkAuthoringUtility.TryGetKey(parentLink, out var key))
             {
-                Debug.LogError($"{nameof(EntityLinkParentClip)} '{name}' missing link schema.");
+                Debug.LogError($"{nameof(EntityLinkParentClip)} '{name}' missing parent link.");
                 return;
             }
 
-            context.Baker.AddComponent(clipEntity, new EntityLinkParentData
+            commands.AddComponent(new EntityLinkParentData
             {
                 EntityToParent = entityToParent,
                 ReadRootFrom = readRootFrom,
@@ -44,7 +47,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 RestoreOnEnd = restoreOnEnd
             });
 
-            context.Baker.AddComponent<EntityLinkParentState>(clipEntity);
+            commands.AddComponent<EntityLinkParentState>();
 
             base.Bake(clipEntity, context);
         }

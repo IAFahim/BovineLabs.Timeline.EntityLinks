@@ -1,3 +1,4 @@
+using BovineLabs.Core.Authoring.EntityCommands;
 using BovineLabs.Reaction.Data.Core;
 using BovineLabs.Timeline.Authoring;
 using BovineLabs.Timeline.EntityLinks.Data;
@@ -29,13 +30,15 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
         public override void Bake(Entity clipEntity, BakingContext context)
         {
+            var commands = new BakerCommands(context.Baker, clipEntity);
+
             if (!EntityLinkAuthoringUtility.TryGetKey(this.link, out var key))
             {
                 Debug.LogError($"{nameof(EntityLinkCopyTransformClip)} '{this.name}' missing link schema.");
                 return;
             }
 
-            context.Baker.AddComponent(clipEntity, new EntityLinkCopyTransform
+            commands.AddComponent(new EntityLinkCopyTransform
             {
                 EntityToMove = this.entityToMove,
                 ReadRootFrom = this.readRootFrom,
