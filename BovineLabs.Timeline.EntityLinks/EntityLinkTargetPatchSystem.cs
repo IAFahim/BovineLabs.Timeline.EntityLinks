@@ -48,9 +48,7 @@ namespace BovineLabs.Timeline.EntityLinks
                 TargetsLookup = _targetsLookup,
                 Sources = _sources,
                 Links = _links,
-                EntityLock = _entityLock,
-                ECB = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
-                    .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
+                EntityLock = _entityLock
             }.ScheduleParallel(state.Dependency);
         }
 
@@ -65,7 +63,6 @@ namespace BovineLabs.Timeline.EntityLinks
             [ReadOnly] public UnsafeBufferLookup<EntityLinkEntry> Links;
 
             public EntityLock EntityLock;
-            public EntityCommandBuffer.ParallelWriter ECB;
 
             private void Execute([EntityIndexInQuery] int sortKey, in TrackBinding binding,
                 in EntityLinkTargetPatch patch)

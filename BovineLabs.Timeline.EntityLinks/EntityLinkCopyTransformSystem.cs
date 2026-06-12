@@ -46,7 +46,8 @@ namespace BovineLabs.Timeline.EntityLinks
                 Links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true),
                 LtwLookup = ltwLookup,
                 LocalTransformLookup = localTransformLookup,
-                ParentLookup = parentLookup
+                ParentLookup = parentLookup,
+                ECB = ecb
             }.ScheduleParallel(state.Dependency);
         }
 
