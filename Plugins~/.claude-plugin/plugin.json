@@ -1,0 +1,8 @@
+{
+  "name": "bovinelabs-timeline-entitylinks",
+  "description": "Vex Unity agent skills shipped with BovineLabs Timeline EntityLinks.",
+  "version": "0.1.0",
+  "author": {
+    "name": "IAFahim"
+  }
+}

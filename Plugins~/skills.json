@@ -1,0 +1,22 @@
+[
+  {
+    "id": "unity-track-entitylink-copytransform",
+    "displayName": "Track Entitylink Copytransform",
+    "description": "Master of EntityLinkCopyTransformTrack + EntityLinkCopyTransformClip (EntityLinks package, BovineLabs.Timeline.EntityLinks) — schema-link resolution, the verified Target enum, follow/attach via per-frame transform copy, and the unassigned-ECB package bug. Portable to any project containing the package; worked example from vex-ee. Use when a designer asks \"make this follow/attach to that linked thing during a clip\"."
+  },
+  {
+    "id": "unity-track-entitylink-mutate",
+    "displayName": "Track Entitylink Mutate",
+    "description": "Master of EntityLinkMutateTrack + EntityLinkMutateClip (EntityLinks package, BovineLabs.Timeline.EntityLinks) — edge-triggered Assign/Swap/Remove of link-map entries, permanent runtime mutations + the compensating-clip pattern, the bake-error capture recipe. Portable to any project containing the package; worked example from vex-ee. Use when a designer asks \"retarget/swap/clear a link from this moment\"."
+  },
+  {
+    "id": "unity-track-entitylink-parent",
+    "displayName": "Track Entitylink Parent",
+    "description": "Master of EntityLinkParentTrack + EntityLinkParentClip (EntityLinks package, BovineLabs.Timeline.EntityLinks) — stick-and-release reparenting via links, the restore-restores-the-pointer-never-the-pose truth, and the enter/exit state machine. Portable to any project containing the package; worked example from vex-ee. Use when a designer asks \"stick this to that linked thing for a while, then let go\"."
+  },
+  {
+    "id": "unity-track-entitylink-targetpatch",
+    "displayName": "Track Entitylink Targetpatch",
+    "description": "Master of EntityLinkTargetPatchTrack + EntityLinkTargetPatchClip (EntityLinks package, BovineLabs.Timeline.EntityLinks) — one-shot permanent re-pointing of a Targets slot via links, the skip-on-Null safety, the weakest-undo-in-family truth, the assigned-but-unused ECB; carries the EntityLinks FAMILY CLOSING SUMMARY. Portable to any project containing the package; worked example from vex-ee. Use when a designer asks \"from now on, act on the linked thing instead\"."
+  }
+]
