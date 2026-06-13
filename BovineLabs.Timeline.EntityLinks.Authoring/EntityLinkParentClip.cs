@@ -11,14 +11,21 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 {
     public sealed class EntityLinkParentClip : DOTSClip, ITimelineClipAsset
     {
+        [Tooltip("Which Targets slot is reparented under the linked parent.")]
         public Target entityToParent = Target.Target;
 
-        [Header("Parent Link")] public Target readRootFrom = Target.Owner;
+        [Header("Parent Link")]
+        [Tooltip("Which Targets slot to read the link-map root from.")]
+        public Target readRootFrom = Target.Owner;
 
+        [Tooltip("The link key whose entity becomes the new parent.")]
         public EntityLinkSchema parentLink;
 
-        [Header("Offset")] public Vector3 localPosition;
+        [Header("Offset")]
+        [Tooltip("Local position under the new parent.")]
+        public Vector3 localPosition;
 
+        [Tooltip("Local rotation (Euler degrees) under the new parent.")]
         public Vector3 localRotation;
 
         [Header("Cleanup")] [Tooltip("If true, reverts to the previous parent when the clip ends.")]

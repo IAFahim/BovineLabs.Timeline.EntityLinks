@@ -10,9 +10,16 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 {
     public sealed class EntityLinkTargetPatchClip : DOTSClip, ITimelineClipAsset
     {
+        [Tooltip("The link key whose entity is written into the Targets slot. PERMANENT: re-points the slot once at clip start and is NOT auto-restored when the clip ends.")]
         public EntityLinkSchema Link;
+
+        [Tooltip("Which Targets slot to read the link-map root from.")]
         public Target ReadRootFrom = Target.Source;
+
+        [Tooltip("Which Targets slot is overwritten with the linked entity. Cannot be None or Self.")]
         public Target WriteTo = Target.Target;
+
+        [Tooltip("Entity written to the slot when the link resolves to Null.")]
         public Target Fallback = Target.Target;
 
         public override double duration => 1;

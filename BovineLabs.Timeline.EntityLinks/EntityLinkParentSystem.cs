@@ -78,6 +78,8 @@ namespace BovineLabs.Timeline.EntityLinks
                 in EntityLinkParentData config,
                 ref EntityLinkParentState state)
             {
+                state.ParentApplied = false;
+
                 var bindingEntity = binding.Value;
                 if (bindingEntity == Entity.Null)
                     return;

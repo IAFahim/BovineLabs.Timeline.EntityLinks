@@ -100,6 +100,8 @@ namespace BovineLabs.Timeline.EntityLinks
 
                         case EntityLinkMutateMode.Swap:
                         {
+                            if (mutate.LinkKey == mutate.SwapKey) break;
+
                             int idxA = -1, idxB = -1;
                             for (var i = 0; i < buffer.Length; i++)
                                 if (buffer[i].Key == mutate.LinkKey) idxA = i;
