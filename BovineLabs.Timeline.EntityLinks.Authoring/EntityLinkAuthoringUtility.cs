@@ -49,7 +49,6 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         {
             linked = null;
 
-            // Check manually registered links first (schema lives on the source now)
             foreach (var source in root.Links)
                 if (source != null && source.HasSchema(schema))
                 {
@@ -57,7 +56,6 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                     return true;
                 }
 
-            // Fall back to scanning all children
             foreach (var source in root.GetComponentsInChildren<EntityLinkSourceAuthoring>(true))
                 if (source.HasSchema(schema) && source.TryGetRoot(out var sourceRoot) && sourceRoot == root)
                 {
