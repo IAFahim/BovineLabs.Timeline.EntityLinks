@@ -1,6 +1,7 @@
 using BovineLabs.Reaction.Data.Core;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 
 namespace BovineLabs.Timeline.EntityLinks.Data
 {
@@ -22,5 +23,8 @@ namespace BovineLabs.Timeline.EntityLinks.Data
         public Entity PreviousParent;
         public bool HadParent;
         public bool ParentApplied;
+
+        public LocalTransform OriginalLocalTransform;
+        public bool HadLocalTransform;
     }
 }
