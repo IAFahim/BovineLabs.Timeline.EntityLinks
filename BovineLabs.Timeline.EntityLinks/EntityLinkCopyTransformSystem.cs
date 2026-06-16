@@ -12,6 +12,8 @@ using Unity.Transforms;
 namespace BovineLabs.Timeline.EntityLinks
 {
     [UpdateInGroup(typeof(TimelineComponentAnimationGroup))]
+    [UpdateAfter(typeof(EntityLinkMutateSystem))]
+    [UpdateAfter(typeof(EntityLinkTargetPatchSystem))]
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation |
                        WorldSystemFilterFlags.ServerSimulation)]
     public partial struct EntityLinkCopyTransformSystem : ISystem
@@ -93,11 +95,15 @@ namespace BovineLabs.Timeline.EntityLinks
                 if (config.CopyPosition && math.lengthsq(config.PositionOffset) > 0)
                     desiredWorldPos += math.rotate(desiredWorldRot, config.PositionOffset);
 
-                if (config.CopyRotation && !config.RotationOffset.Equals(quaternion.identity))
+                if (config.CopyRotation && math.lengthsq(config.RotationOffset.value) > 1e-6f &&
+                    !config.RotationOffset.Equals(quaternion.identity))
                     desiredWorldRot = math.mul(desiredWorldRot, config.RotationOffset);
 
+                // Fall back to a world-space write when the parent transform is non-invertible (zero/degenerate
+                // scale) so math.inverse cannot emit NaN/Inf into the child's LocalTransform.
                 if (ParentLookup.TryGetComponent(entityToMove, out var parent) &&
-                    LtwLookup.TryGetComponent(parent.Value, out var parentLtw))
+                    LtwLookup.TryGetComponent(parent.Value, out var parentLtw) &&
+                    math.abs(math.determinant(parentLtw.Value)) > 1e-12f)
                 {
                     var parentInverse = math.inverse(parentLtw.Value);
 
