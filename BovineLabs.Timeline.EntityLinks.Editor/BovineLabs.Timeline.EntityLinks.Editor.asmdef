@@ -11,6 +11,8 @@
     "BovineLabs.Timeline.EntityLinks.Data",
     "UnityCliConnector.Editor",
     "BovineLabs.Timeline.Core.Editor",
+    "Unity.Timeline",
+    "Unity.Timeline.Editor",
     "Unity.Burst",
     "Unity.Collections",
     "Unity.Entities",
