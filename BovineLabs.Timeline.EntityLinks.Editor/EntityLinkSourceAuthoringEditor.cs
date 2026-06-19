@@ -5,6 +5,7 @@
 namespace BovineLabs.Timeline.EntityLinks.Editor
 {
     using BovineLabs.Core.Editor.Inspectors;
+    using BovineLabs.Timeline.Core.Editor;
     using BovineLabs.Timeline.EntityLinks.Authoring;
     using UnityEditor;
     using UnityEditor.UIElements;
@@ -35,8 +36,8 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
             var authoring = (EntityLinkSourceAuthoring)this.target;
             GameObject resolved = null;
 
-            // When Root is empty it still bakes to the parent root — a ping button jumps to that GameObject.
-            var ping = new Button(() => EntityLinkEditorPing.Ping(resolved));
+            // When Root is empty it still bakes to the parent root — this button opens that GameObject's properties.
+            var ping = new Button(() => EditorInspect.Open(resolved));
             ping.style.unityTextAlign = TextAnchor.MiddleLeft;
             container.Add(ping);
 

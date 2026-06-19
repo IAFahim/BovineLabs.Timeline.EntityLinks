@@ -4,17 +4,15 @@
 
 namespace BovineLabs.Timeline.EntityLinks.Editor
 {
+    using BovineLabs.Timeline.Core.Editor;
     using BovineLabs.Timeline.EntityLinks.Authoring;
     using UnityEditor;
-    using UnityEditor.Timeline;
     using UnityEngine;
-    using UnityEngine.Playables;
-    using UnityEngine.Timeline;
 
     /// <summary>
-    /// Draws every <see cref="EntityLinkSchema" /> reference with a <b>ping</b> button that selects/pings the
-    /// GameObject this link resolves to. On a Timeline clip it resolves the Source under the bound root
-    /// (mirroring <see cref="EntityLinkAuthoringUtility" />); the button greys out when nothing resolves.
+    /// Draws every <see cref="EntityLinkSchema" /> reference with a ◎ button that opens (Alt+P style) the GameObject
+    /// this link resolves to. On a Timeline clip it resolves the Source under the bound root (via
+    /// <see cref="TimelineBinding" /> + <see cref="EntityLinkAuthoringUtility" />); the button greys out otherwise.
     /// </summary>
     [CustomPropertyDrawer(typeof(EntityLinkSchema))]
     public sealed class EntityLinkSchemaDrawer : PropertyDrawer
@@ -27,7 +25,7 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
             EditorGUI.BeginProperty(position, label, property);
 
             var fieldRect = new Rect(position.x, position.y, position.width - ButtonWidth - 2f, position.height);
-            var pingRect = new Rect(position.xMax - ButtonWidth, position.y, ButtonWidth, position.height);
+            var buttonRect = new Rect(position.xMax - ButtonWidth, position.y, ButtonWidth, position.height);
 
             EditorGUI.BeginChangeCheck();
             var newSchema = (EntityLinkSchema)EditorGUI.ObjectField(
@@ -37,20 +35,8 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
                 property.objectReferenceValue = newSchema;
             }
 
-            var schema = property.objectReferenceValue as EntityLinkSchema;
-            var target = ResolveLinkedGameObject(property, schema);
-
-            using (new EditorGUI.DisabledScope(target == null))
-            {
-                var tooltip = target != null
-                    ? $"Ping '{target.name}' — the GameObject this link resolves to."
-                    : "No resolvable GameObject (select the clip in a Timeline bound to a root).";
-
-                if (GUI.Button(pingRect, new GUIContent("◎", tooltip)) && target != null)
-                {
-                    EntityLinkEditorPing.Ping(target);
-                }
-            }
+            var target = ResolveLinkedGameObject(property, property.objectReferenceValue as EntityLinkSchema);
+            EditorInspect.OpenButton(buttonRect, target, "No resolvable GameObject (select the clip in a Timeline bound to a root).");
 
             EditorGUI.EndProperty();
         }
@@ -58,74 +44,17 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
         // The Source GameObject this schema lands on, resolved via the inspected timeline's bound root.
         private static GameObject ResolveLinkedGameObject(SerializedProperty property, EntityLinkSchema schema)
         {
-            if (schema == null || !IsClip(property) || !TryResolveBoundRoot(property, out var root))
+            if (schema == null || !TimelineBinding.TryGetBoundComponent(property, out var bound))
             {
                 return null;
             }
 
-            return EntityLinkAuthoringUtility.TryFindLinkedComponent(root, schema, out var linked)
+            var root = bound.GetComponentInParent<EntityLinkRootAuthoring>(true)
+                       ?? bound.GetComponentInChildren<EntityLinkRootAuthoring>(true);
+
+            return root != null && EntityLinkAuthoringUtility.TryFindLinkedComponent(root, schema, out var linked)
                 ? linked.gameObject
                 : null;
-        }
-
-        private static bool IsClip(SerializedProperty property)
-        {
-            var targets = property.serializedObject.targetObjects;
-            return targets.Length == 1 && targets[0] is PlayableAsset;
-        }
-
-        private static bool TryResolveBoundRoot(SerializedProperty property, out EntityLinkRootAuthoring root)
-        {
-            root = null;
-            try
-            {
-                var director = TimelineEditor.inspectedDirector;
-                var asset = TimelineEditor.inspectedAsset;
-                if (director == null || asset == null)
-                {
-                    return false;
-                }
-
-                var clipAsset = property.serializedObject.targetObject;
-                TrackAsset track = null;
-                foreach (var t in asset.GetOutputTracks())
-                {
-                    foreach (var c in t.GetClips())
-                    {
-                        if (ReferenceEquals(c.asset, clipAsset))
-                        {
-                            track = t;
-                            break;
-                        }
-                    }
-
-                    if (track != null)
-                    {
-                        break;
-                    }
-                }
-
-                if (track == null)
-                {
-                    return false;
-                }
-
-                var binding = director.GetGenericBinding(track);
-                var component = binding as Component ?? (binding as GameObject)?.transform;
-                if (component == null)
-                {
-                    return false;
-                }
-
-                root = component.GetComponentInParent<EntityLinkRootAuthoring>(true)
-                       ?? component.GetComponentInChildren<EntityLinkRootAuthoring>(true);
-
-                return root != null;
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }

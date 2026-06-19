@@ -6,6 +6,7 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
 {
     using System.Collections.Generic;
     using BovineLabs.Core.Editor.Inspectors;
+    using BovineLabs.Timeline.Core.Editor;
     using BovineLabs.Timeline.EntityLinks.Authoring;
     using UnityEditor;
     using UnityEditor.UIElements;
@@ -73,16 +74,16 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
             label.style.minWidth = 120;
             container.Add(label);
 
-            // The whole value is a ping button: click it to select/ping the linked GameObject in the Hierarchy.
+            // The whole value is a button: click it to open the linked GameObject in a Properties window (Alt+P).
             var target = row.Target;
-            var ping = new Button(() => EntityLinkEditorPing.Ping(target))
+            var open = new Button(() => EditorInspect.Open(target))
             {
                 text = target != null ? $"◎  {target.name}" : "◎  (missing)",
-                tooltip = target != null ? $"Ping '{target.name}'." : "Linked GameObject missing.",
+                tooltip = target != null ? $"Open '{target.name}' properties." : "Linked GameObject missing.",
             };
-            ping.style.flexGrow = 1;
-            ping.style.unityTextAlign = TextAnchor.MiddleLeft;
-            container.Add(ping);
+            open.style.flexGrow = 1;
+            open.style.unityTextAlign = TextAnchor.MiddleLeft;
+            container.Add(open);
 
             return container;
         }
