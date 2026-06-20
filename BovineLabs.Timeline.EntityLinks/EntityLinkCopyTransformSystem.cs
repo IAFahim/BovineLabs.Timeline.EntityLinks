@@ -18,25 +18,25 @@ namespace BovineLabs.Timeline.EntityLinks
                        WorldSystemFilterFlags.ServerSimulation)]
     public partial struct EntityLinkCopyTransformSystem : ISystem
     {
-        private ComponentLookup<LocalToWorld> ltwLookup;
-        private ComponentLookup<LocalTransform> localTransformLookup;
-        private ComponentLookup<Parent> parentLookup;
+        private ComponentLookup<LocalToWorld> _ltwLookup;
+        private ComponentLookup<LocalTransform> _localTransformLookup;
+        private ComponentLookup<Parent> _parentLookup;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EntityLinkCopyTransform>();
-            ltwLookup = state.GetComponentLookup<LocalToWorld>(true);
-            localTransformLookup = state.GetComponentLookup<LocalTransform>();
-            parentLookup = state.GetComponentLookup<Parent>(true);
+            _ltwLookup = state.GetComponentLookup<LocalToWorld>(true);
+            _localTransformLookup = state.GetComponentLookup<LocalTransform>();
+            _parentLookup = state.GetComponentLookup<Parent>(true);
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            ltwLookup.Update(ref state);
-            localTransformLookup.Update(ref state);
-            parentLookup.Update(ref state);
+            _ltwLookup.Update(ref state);
+            _localTransformLookup.Update(ref state);
+            _parentLookup.Update(ref state);
 
             var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
@@ -46,9 +46,9 @@ namespace BovineLabs.Timeline.EntityLinks
                 TargetsLookup = state.GetUnsafeComponentLookup<Targets>(true),
                 Sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true),
                 Links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true),
-                LtwLookup = ltwLookup,
-                LocalTransformLookup = localTransformLookup,
-                ParentLookup = parentLookup,
+                LtwLookup = _ltwLookup,
+                LocalTransformLookup = _localTransformLookup,
+                ParentLookup = _parentLookup,
                 ECB = ecb
             }.ScheduleParallel(state.Dependency);
         }
