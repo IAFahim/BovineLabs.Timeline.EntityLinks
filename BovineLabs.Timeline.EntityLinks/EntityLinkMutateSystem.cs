@@ -1,3 +1,4 @@
+using BovineLabs.Core.Collections;
 using BovineLabs.Core.Extensions;
 using BovineLabs.Core.Iterators;
 using BovineLabs.Core.Utility;
@@ -83,53 +84,65 @@ namespace BovineLabs.Timeline.EntityLinks
                     switch (mutate.Mode)
                     {
                         case EntityLinkMutateMode.Assign:
-                        {
-                            var newTarget = targets.Get(mutate.NewTarget, bindingEntity);
-                            var found = false;
-                            for (var i = 0; i < buffer.Length; i++)
-                                if (buffer[i].Key == mutate.LinkKey)
-                                {
-                                    buffer[i] = new EntityLinkEntry { Key = mutate.LinkKey, Target = newTarget };
-                                    found = true;
-                                    break;
-                                }
-
-                            if (!found) buffer.Add(new EntityLinkEntry { Key = mutate.LinkKey, Target = newTarget });
+                            Assign(buffer, mutate.LinkKey, targets.Get(mutate.NewTarget, bindingEntity));
                             break;
-                        }
 
                         case EntityLinkMutateMode.Swap:
-                        {
-                            if (mutate.LinkKey == mutate.SwapKey) break;
-
-                            int idxA = -1, idxB = -1;
-                            for (var i = 0; i < buffer.Length; i++)
-                                if (buffer[i].Key == mutate.LinkKey) idxA = i;
-                                else if (buffer[i].Key == mutate.SwapKey) idxB = i;
-
-                            var targetA = idxA != -1 ? buffer[idxA].Target : Entity.Null;
-                            var targetB = idxB != -1 ? buffer[idxB].Target : Entity.Null;
-
-                            if (idxA != -1)
-                                buffer[idxA] = new EntityLinkEntry { Key = mutate.LinkKey, Target = targetB };
-                            else buffer.Add(new EntityLinkEntry { Key = mutate.LinkKey, Target = targetB });
-
-                            if (idxB != -1)
-                                buffer[idxB] = new EntityLinkEntry { Key = mutate.SwapKey, Target = targetA };
-                            else buffer.Add(new EntityLinkEntry { Key = mutate.SwapKey, Target = targetA });
+                            Swap(buffer, mutate.LinkKey, mutate.SwapKey);
                             break;
-                        }
 
                         case EntityLinkMutateMode.Remove:
-                        {
-                            for (var i = buffer.Length - 1; i >= 0; i--)
-                                if (buffer[i].Key == mutate.LinkKey)
-                                    buffer.RemoveAt(i);
-
+                            Remove(buffer, mutate.LinkKey);
                             break;
-                        }
                     }
                 }
+            }
+
+            private static void Assign(UnsafeDynamicBuffer<EntityLinkEntry> buffer, ushort linkKey, Entity newTarget)
+            {
+                for (var i = 0; i < buffer.Length; i++)
+                {
+                    if (buffer[i].Key != linkKey)
+                        continue;
+
+                    buffer[i] = new EntityLinkEntry { Key = linkKey, Target = newTarget };
+                    return;
+                }
+
+                buffer.Add(new EntityLinkEntry { Key = linkKey, Target = newTarget });
+            }
+
+            private static void Swap(UnsafeDynamicBuffer<EntityLinkEntry> buffer, ushort linkKey, ushort swapKey)
+            {
+                if (linkKey == swapKey)
+                    return;
+
+                int idxA = -1, idxB = -1;
+                for (var i = 0; i < buffer.Length; i++)
+                    if (buffer[i].Key == linkKey) idxA = i;
+                    else if (buffer[i].Key == swapKey) idxB = i;
+
+                var targetA = idxA != -1 ? buffer[idxA].Target : Entity.Null;
+                var targetB = idxB != -1 ? buffer[idxB].Target : Entity.Null;
+
+                SetOrAdd(buffer, idxA, linkKey, targetB);
+                SetOrAdd(buffer, idxB, swapKey, targetA);
+            }
+
+            private static void Remove(UnsafeDynamicBuffer<EntityLinkEntry> buffer, ushort linkKey)
+            {
+                for (var i = buffer.Length - 1; i >= 0; i--)
+                    if (buffer[i].Key == linkKey)
+                        buffer.RemoveAt(i);
+            }
+
+            private static void SetOrAdd(UnsafeDynamicBuffer<EntityLinkEntry> buffer, int index, ushort key, Entity target)
+            {
+                var entry = new EntityLinkEntry { Key = key, Target = target };
+                if (index != -1)
+                    buffer[index] = entry;
+                else
+                    buffer.Add(entry);
             }
         }
     }

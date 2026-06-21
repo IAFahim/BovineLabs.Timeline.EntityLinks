@@ -55,12 +55,15 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
             _worldSpaceLookup.Update(ref state);
 
             if (!TimelineDebugUtility.TryGetDrawer<EntityLinkDebugSystem>(
-                    ref state, EntityLinkDebugSystemConfig.Enabled.Data, out var drawer))
+                    ref state, EntityLinkDebugSystemConfig.Enabled.Data, out var drawer,
+                    out var viewer, out var hasViewer))
                 return;
 
             state.Dependency = new RenderTransition
             {
                 Renderer = drawer,
+                Viewer = viewer,
+                HasViewer = hasViewer,
                 WorldSpace = _worldSpaceLookup
             }.Schedule(state.Dependency);
         }
@@ -70,6 +73,8 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
         private partial struct RenderTransition : IJobEntity
         {
             public Drawer Renderer;
+            public float3 Viewer;
+            public bool HasViewer;
             [ReadOnly] public UnsafeComponentLookup<LocalToWorld> WorldSpace;
 
             private void Execute(Entity entity, in TrackBinding binding, in Targets targets)
@@ -77,15 +82,16 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
                 if (!WorldSpace.TryGetComponent(binding.Value, out var bindingLtw)) return;
 
                 var origin = bindingLtw.Position;
+                var tier = TimelineDebugTier.Resolve(origin, Viewer, HasViewer);
 
                 if (targets.Target != Entity.Null && WorldSpace.TryGetComponent(targets.Target, out var targetLtw))
-                    RenderManifold(origin, targetLtw.Position, 0);
+                    RenderManifold(origin, targetLtw.Position, 0, tier);
 
                 if (targets.Source != Entity.Null && WorldSpace.TryGetComponent(targets.Source, out var sourceLtw))
-                    RenderManifold(origin, sourceLtw.Position, 1);
+                    RenderManifold(origin, sourceLtw.Position, 1, tier);
             }
 
-            private unsafe void RenderManifold(float3 origin, float3 destination, byte domain)
+            private unsafe void RenderManifold(float3 origin, float3 destination, byte domain, DebugTier tier)
             {
                 var tint = domain == 0 ? TimelineDebugColors.TargetLink : TimelineDebugColors.SourceLink;
                 var span = math.distance(origin, destination);
@@ -116,6 +122,23 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
 
                 Renderer.Lines(path.GetSubArray(0, pathLength), tint);
                 Renderer.Point(destination, 0.05f, tint);
+
+                if (tier >= DebugTier.Mid)
+                {
+                    // Mid: which link this arc is — one short label at the apex.
+                    var label = domain == 0 ? (FixedString32Bytes)"Target" : (FixedString32Bytes)"Source";
+                    Renderer.Text32(apex + new float3(0, 0.15f, 0), label, tint, 11f);
+                }
+
+                if (tier == DebugTier.Close)
+                {
+                    // Close: the measured link span.
+                    var readout = new FixedString128Bytes();
+                    readout.Append(domain == 0 ? (FixedString32Bytes)"Target " : (FixedString32Bytes)"Source ");
+                    readout.Append(span);
+                    readout.Append((FixedString32Bytes)"m");
+                    Renderer.Text128(destination + new float3(0, 0.25f, 0), readout, TimelineDebugColors.Label, 10f);
+                }
             }
         }
     }
