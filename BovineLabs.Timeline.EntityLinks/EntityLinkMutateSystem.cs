@@ -77,24 +77,30 @@ namespace BovineLabs.Timeline.EntityLinks
                 if (rootCandidate == Entity.Null ||
                     !EntityLinkResolver.TryResolveRoot(rootCandidate, Sources, out var root)) return;
 
+                var newTarget = targets.Get(mutate.NewTarget, bindingEntity);
+
                 using (EntityLock.Acquire(root))
                 {
-                    if (!Entries.TryGetBuffer(root, out var buffer)) return;
+                    if (Entries.TryGetBuffer(root, out var buffer))
+                        ApplyMutation(buffer, mutate, newTarget);
+                }
+            }
 
-                    switch (mutate.Mode)
-                    {
-                        case EntityLinkMutateMode.Assign:
-                            Assign(buffer, mutate.LinkKey, targets.Get(mutate.NewTarget, bindingEntity));
-                            break;
+            private static void ApplyMutation(UnsafeDynamicBuffer<EntityLinkEntry> buffer, in EntityLinkMutate mutate, Entity newTarget)
+            {
+                switch (mutate.Mode)
+                {
+                    case EntityLinkMutateMode.Assign:
+                        Assign(buffer, mutate.LinkKey, newTarget);
+                        break;
 
-                        case EntityLinkMutateMode.Swap:
-                            Swap(buffer, mutate.LinkKey, mutate.SwapKey);
-                            break;
+                    case EntityLinkMutateMode.Swap:
+                        Swap(buffer, mutate.LinkKey, mutate.SwapKey);
+                        break;
 
-                        case EntityLinkMutateMode.Remove:
-                            Remove(buffer, mutate.LinkKey);
-                            break;
-                    }
+                    case EntityLinkMutateMode.Remove:
+                        Remove(buffer, mutate.LinkKey);
+                        break;
                 }
             }
 
