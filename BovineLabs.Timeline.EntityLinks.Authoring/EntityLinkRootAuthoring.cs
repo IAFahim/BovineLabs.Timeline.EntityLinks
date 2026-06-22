@@ -45,9 +45,12 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
 
                     foreach (var schema in schemas)
                     {
-                        if (!EntityLinkAuthoringUtility.TryGetKey(schema, out var key)) continue;
+                        if (schema == null) continue;
 
                         if (seenSchemas.Add(schema)) DependsOn(schema);
+
+                        if (!EntityLinkAuthoringUtility.TryGetKey(schema, out var key)) continue;
+
                         AddLink(authoring, links, key, source, schema.name);
                     }
                 }

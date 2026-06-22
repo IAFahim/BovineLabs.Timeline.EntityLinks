@@ -128,11 +128,18 @@ namespace BovineLabs.Timeline.EntityLinks
                     if (buffer[i].Key == linkKey) idxA = i;
                     else if (buffer[i].Key == swapKey) idxB = i;
 
+                // Nothing to swap when neither key is present; avoid appending junk Null entries.
+                if (idxA == -1 && idxB == -1)
+                    return;
+
                 var targetA = idxA != -1 ? buffer[idxA].Target : Entity.Null;
                 var targetB = idxB != -1 ? buffer[idxB].Target : Entity.Null;
 
-                SetOrAdd(buffer, idxA, linkKey, targetB);
-                SetOrAdd(buffer, idxB, swapKey, targetA);
+                // A stored Null target counts as a successful resolve and suppresses fallback,
+                // so when the value moving into a key is Null we remove that key instead of writing Null.
+                // Use key-based operations because Remove may shift indices.
+                SetRemoveOrAdd(buffer, linkKey, targetB);
+                SetRemoveOrAdd(buffer, swapKey, targetA);
             }
 
             private static void Remove(UnsafeDynamicBuffer<EntityLinkEntry> buffer, ushort linkKey)
@@ -142,13 +149,27 @@ namespace BovineLabs.Timeline.EntityLinks
                         buffer.RemoveAt(i);
             }
 
-            private static void SetOrAdd(UnsafeDynamicBuffer<EntityLinkEntry> buffer, int index, ushort key, Entity target)
+            // Writes target onto key (updating in place if present, adding otherwise). A Null target
+            // removes the key instead of storing Null, which would otherwise read back as a successful
+            // resolve and suppress fallback.
+            private static void SetRemoveOrAdd(UnsafeDynamicBuffer<EntityLinkEntry> buffer, ushort key, Entity target)
             {
-                var entry = new EntityLinkEntry { Key = key, Target = target };
-                if (index != -1)
-                    buffer[index] = entry;
-                else
-                    buffer.Add(entry);
+                if (target == Entity.Null)
+                {
+                    Remove(buffer, key);
+                    return;
+                }
+
+                for (var i = 0; i < buffer.Length; i++)
+                {
+                    if (buffer[i].Key != key)
+                        continue;
+
+                    buffer[i] = new EntityLinkEntry { Key = key, Target = target };
+                    return;
+                }
+
+                buffer.Add(new EntityLinkEntry { Key = key, Target = target });
             }
         }
     }

@@ -38,7 +38,7 @@ namespace BovineLabs.Timeline.EntityLinks
             _childLookup.Update(ref state);
             _ptmLookup.Update(ref state);
 
-            var ecb = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>()
+            var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
             state.Dependency = new EnterJob
@@ -143,13 +143,22 @@ namespace BovineLabs.Timeline.EntityLinks
 
             public EntityCommandBuffer.ParallelWriter ECB;
 
+            // EnterJob and ExitJob write into the SAME ECB parallel writer but iterate different queries, so
+            // their [EntityIndexInQuery] sortKeys overlap. When one clip enters and another exits on the same
+            // target entity in the same frame, equal sortKeys make the final Parent order-undefined. Offset the
+            // exit sortKey into a disjoint, higher range so restore commands deterministically sort after the
+            // enter commands of that frame.
+            public const int ExitSortKeyOffset = 1 << 24;
+
             private void Execute(
-                [EntityIndexInQuery] int sortKey,
+                [EntityIndexInQuery] int indexInQuery,
                 in EntityLinkParentData config,
                 ref EntityLinkParentState state)
             {
                 if (!config.RestoreOnEnd || state.Target == Entity.Null || !state.ParentApplied)
                     return;
+
+                var sortKey = indexInQuery + ExitSortKeyOffset;
 
                 if (state.HadParent && state.PreviousParent != Entity.Null &&
                     LtwLookup.TryGetComponent(state.PreviousParent, out var parentLtw))

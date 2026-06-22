@@ -49,7 +49,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         internal void AddSchemas(List<EntityLinkSchema> schemas)
         {
             foreach (var s in Schemas)
-                if (s != null)
+                if (s != null && !schemas.Contains(s))
                     schemas.Add(s);
         }
 

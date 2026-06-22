@@ -31,7 +31,7 @@ namespace BovineLabs.Timeline.EntityLinks
         {
             if (root != Entity.Null && key != 0 && entries.TryGetBuffer(root, out var buffer))
                 for (var i = 0; i < buffer.Length; i++)
-                    if (buffer[i].Key == key)
+                    if (buffer[i].Key == key && buffer[i].Target != Entity.Null)
                     {
                         result = buffer[i].Target;
                         return true;
