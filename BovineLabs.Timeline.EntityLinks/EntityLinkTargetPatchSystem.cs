@@ -84,27 +84,9 @@ namespace BovineLabs.Timeline.EntityLinks
                 {
                     targets = TargetsLookup[bindingEntity];
 
-                    switch (patch.WriteTo)
+                    if (EntityLinkTargetSlot.TrySet(ref targets, patch.WriteTo, resolved))
                     {
-                        case Target.Owner:
-                            targets.Owner = resolved;
-                            TargetsLookup[bindingEntity] = targets;
-                            break;
-
-                        case Target.Source:
-                            targets.Source = resolved;
-                            TargetsLookup[bindingEntity] = targets;
-                            break;
-
-                        case Target.Target:
-                            targets.Target = resolved;
-                            TargetsLookup[bindingEntity] = targets;
-                            break;
-
-                        case Target.Custom:
-                            targets.Custom = resolved;
-                            TargetsLookup[bindingEntity] = targets;
-                            break;
+                        TargetsLookup[bindingEntity] = targets;
                     }
                 }
             }

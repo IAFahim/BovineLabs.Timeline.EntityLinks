@@ -27,7 +27,7 @@ namespace BovineLabs.Timeline.EntityLinks
         {
             state.RequireForUpdate<EntityLinkCopyTransform>();
             _ltwLookup = state.GetComponentLookup<LocalToWorld>(true);
-            _localTransformLookup = state.GetComponentLookup<LocalTransform>();
+            _localTransformLookup = state.GetComponentLookup<LocalTransform>(true);
             _parentLookup = state.GetComponentLookup<Parent>(true);
         }
 
@@ -73,7 +73,8 @@ namespace BovineLabs.Timeline.EntityLinks
                     !TargetsLookup.TryGetComponent(bindingEntity, out var targets)) return;
 
                 var entityToMove = targets.Get(config.EntityToMove, bindingEntity);
-                if (entityToMove == Entity.Null || !LocalTransformLookup.HasComponent(entityToMove)) return;
+                if (entityToMove == Entity.Null ||
+                    !LocalTransformLookup.TryGetComponent(entityToMove, out var targetTransform)) return;
 
                 var resolvedSource = EntityLinkResolver.ResolveOrFallback(
                     bindingEntity,
@@ -86,42 +87,27 @@ namespace BovineLabs.Timeline.EntityLinks
                 if (resolvedSource == Entity.Null ||
                     !LtwLookup.TryGetComponent(resolvedSource, out var sourceLtw)) return;
 
-                var targetTransform = LocalTransformLookup[entityToMove];
-
-                var sourceWorldTransform = LocalTransform.FromMatrix(sourceLtw.Value);
-                var desiredWorldPos = sourceWorldTransform.Position;
-                var desiredWorldRot = sourceWorldTransform.Rotation;
-
-                if (config.CopyPosition && math.lengthsq(config.PositionOffset) > 0)
-                    desiredWorldPos += math.rotate(desiredWorldRot, config.PositionOffset);
-
-                if (config.CopyRotation && math.lengthsq(config.RotationOffset.value) > 1e-6f &&
-                    !config.RotationOffset.Equals(quaternion.identity))
-                    desiredWorldRot = math.mul(desiredWorldRot, config.RotationOffset);
-
+                var parentLtw = float4x4.identity;
+                var hasParent = false;
                 if (ParentLookup.TryGetComponent(entityToMove, out var parent) &&
-                    LtwLookup.TryGetComponent(parent.Value, out var parentLtw) &&
-                    math.abs(math.determinant(parentLtw.Value)) > 1e-12f)
+                    LtwLookup.TryGetComponent(parent.Value, out var parentLtwValue))
                 {
-                    var parentInverse = math.inverse(parentLtw.Value);
-
-                    if (config.CopyPosition) targetTransform.Position = math.transform(parentInverse, desiredWorldPos);
-
-                    if (config.CopyRotation)
-                    {
-                        var parentWorldTransform = LocalTransform.FromMatrix(parentLtw.Value);
-                        targetTransform.Rotation =
-                            math.mul(math.inverse(parentWorldTransform.Rotation), desiredWorldRot);
-                    }
-                }
-                else
-                {
-                    if (config.CopyPosition) targetTransform.Position = desiredWorldPos;
-
-                    if (config.CopyRotation) targetTransform.Rotation = desiredWorldRot;
+                    hasParent = true;
+                    parentLtw = parentLtwValue.Value;
                 }
 
-                ECB.SetComponent(sortKey, entityToMove, targetTransform);
+                EntityLinkTransform.TryComposeChildLocal(
+                    targetTransform,
+                    sourceLtw.Value,
+                    config.CopyPosition,
+                    config.CopyRotation,
+                    config.PositionOffset,
+                    config.RotationOffset,
+                    hasParent,
+                    parentLtw,
+                    out var result);
+
+                ECB.SetComponent(sortKey, entityToMove, result);
             }
         }
     }

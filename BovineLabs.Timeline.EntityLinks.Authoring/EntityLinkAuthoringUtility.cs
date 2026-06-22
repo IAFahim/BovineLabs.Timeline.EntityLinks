@@ -1,4 +1,3 @@
-using BovineLabs.Timeline.Authoring;
 using UnityEngine;
 
 namespace BovineLabs.Timeline.EntityLinks.Authoring
@@ -9,39 +8,6 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         {
             key = schema == null ? (ushort)0 : schema.Id;
             return key != 0;
-        }
-
-        public static bool TryResolveLink(this BakingContext context, EntityLinkSchema schema, out Component linked)
-        {
-            linked = null;
-
-            if (schema == null)
-                return false;
-
-            var binding = context.Director.GetGenericBinding(context.Track);
-            var target = binding as Component ?? (binding as GameObject)?.transform;
-
-            if (target == null)
-                return false;
-
-            var root = target.GetComponentInParent<EntityLinkRootAuthoring>();
-            if (root == null)
-                root = target.GetComponentInChildren<EntityLinkRootAuthoring>(true);
-
-            return root != null && TryFindLinkedComponent(root, schema, out linked);
-        }
-
-        public static bool TryResolveLinkComponent<T>(this BakingContext context, EntityLinkSchema schema,
-            out T component)
-            where T : Component
-        {
-            component = null;
-
-            if (!context.TryResolveLink(schema, out var linked))
-                return false;
-
-            component = linked.GetComponent<T>();
-            return component != null;
         }
 
         public static bool TryFindLinkedComponent(EntityLinkRootAuthoring root, EntityLinkSchema schema,

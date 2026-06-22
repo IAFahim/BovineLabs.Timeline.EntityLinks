@@ -8,7 +8,6 @@ using BovineLabs.Timeline.EntityLinks.Data;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace BovineLabs.Timeline.EntityLinks
@@ -21,6 +20,11 @@ namespace BovineLabs.Timeline.EntityLinks
         private ComponentLookup<LocalToWorld> _ltwLookup;
         private BufferLookup<Child> _childLookup;
         private ComponentLookup<PostTransformMatrix> _ptmLookup;
+        private UnsafeComponentLookup<Targets> _targetsLookup;
+        private UnsafeComponentLookup<EntityLinkSource> _sources;
+        private UnsafeBufferLookup<EntityLinkEntry> _links;
+        private UnsafeComponentLookup<Parent> _parentLookup;
+        private UnsafeComponentLookup<LocalTransform> _localTransformLookup;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
@@ -29,6 +33,11 @@ namespace BovineLabs.Timeline.EntityLinks
             _ltwLookup = state.GetComponentLookup<LocalToWorld>(true);
             _childLookup = state.GetBufferLookup<Child>(true);
             _ptmLookup = state.GetComponentLookup<PostTransformMatrix>(true);
+            _targetsLookup = state.GetUnsafeComponentLookup<Targets>(true);
+            _sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true);
+            _links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true);
+            _parentLookup = state.GetUnsafeComponentLookup<Parent>(true);
+            _localTransformLookup = state.GetUnsafeComponentLookup<LocalTransform>(true);
         }
 
         [BurstCompile]
@@ -37,19 +46,24 @@ namespace BovineLabs.Timeline.EntityLinks
             _ltwLookup.Update(ref state);
             _childLookup.Update(ref state);
             _ptmLookup.Update(ref state);
+            _targetsLookup.Update(ref state);
+            _sources.Update(ref state);
+            _links.Update(ref state);
+            _parentLookup.Update(ref state);
+            _localTransformLookup.Update(ref state);
 
             var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
 
             state.Dependency = new EnterJob
             {
-                TargetsLookup = state.GetUnsafeComponentLookup<Targets>(true),
-                Sources = state.GetUnsafeComponentLookup<EntityLinkSource>(true),
-                Links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true),
+                TargetsLookup = _targetsLookup,
+                Sources = _sources,
+                Links = _links,
                 LtwLookup = _ltwLookup,
                 ChildLookup = _childLookup,
-                ParentLookup = state.GetUnsafeComponentLookup<Parent>(true),
-                LocalTransformLookup = state.GetUnsafeComponentLookup<LocalTransform>(true),
+                ParentLookup = _parentLookup,
+                LocalTransformLookup = _localTransformLookup,
                 ECB = ecb
             }.ScheduleParallel(state.Dependency);
 
@@ -182,16 +196,8 @@ namespace BovineLabs.Timeline.EntityLinks
                     }
                     else if (LtwLookup.TryGetComponent(state.Target, out var selfLtw))
                     {
-                        var rigid = selfLtw.Value;
-                        if (PtmLookup.TryGetComponent(state.Target, out var ptm) &&
-                            math.abs(math.determinant(ptm.Value)) > 1e-12f)
-                        {
-                            var candidate = math.mul(selfLtw.Value, math.inverse(ptm.Value));
-                            if (math.all(math.isfinite(candidate.c0)) && math.all(math.isfinite(candidate.c1)) &&
-                                math.all(math.isfinite(candidate.c2)) && math.all(math.isfinite(candidate.c3)))
-                                rigid = candidate;
-                        }
-
+                        var hasPtm = PtmLookup.TryGetComponent(state.Target, out var ptm);
+                        EntityLinkParentRecovery.TryRecoverRigid(selfLtw.Value, hasPtm, ptm.Value, out var rigid);
                         ECB.SetComponent(sortKey, state.Target, LocalTransform.FromMatrix(rigid));
                     }
                 }
