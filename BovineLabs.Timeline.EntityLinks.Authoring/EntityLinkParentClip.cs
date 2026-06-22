@@ -14,15 +14,13 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         [Tooltip("Which Targets slot is reparented under the linked parent.")]
         public Target entityToParent = Target.Target;
 
-        [Header("Parent Link")]
-        [Tooltip("Which Targets slot to read the link-map root from.")]
+        [Header("Parent Link")] [Tooltip("Which Targets slot to read the link-map root from.")]
         public Target readRootFrom = Target.Owner;
 
         [Tooltip("The link key whose entity becomes the new parent.")]
         public EntityLinkSchema parentLink;
 
-        [Header("Offset")]
-        [Tooltip("Local position under the new parent.")]
+        [Header("Offset")] [Tooltip("Local position under the new parent.")]
         public Vector3 localPosition;
 
         [Tooltip("Local rotation (Euler degrees) under the new parent.")]

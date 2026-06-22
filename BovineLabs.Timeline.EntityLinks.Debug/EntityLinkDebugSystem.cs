@@ -125,14 +125,12 @@ namespace BovineLabs.Timeline.EntityLinks.Debug
 
                 if (tier >= DebugTier.Mid)
                 {
-                    // Mid: which link this arc is — one short label at the apex.
                     var label = domain == 0 ? (FixedString32Bytes)"Target" : (FixedString32Bytes)"Source";
                     Renderer.Text32(apex + new float3(0, 0.15f, 0), label, tint, 11f);
                 }
 
                 if (tier == DebugTier.Close)
                 {
-                    // Close: the measured link span.
                     var readout = new FixedString128Bytes();
                     readout.Append(domain == 0 ? (FixedString32Bytes)"Target " : (FixedString32Bytes)"Source ");
                     readout.Append(span);

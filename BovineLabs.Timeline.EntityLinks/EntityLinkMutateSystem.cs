@@ -86,7 +86,8 @@ namespace BovineLabs.Timeline.EntityLinks
                 }
             }
 
-            private static void ApplyMutation(UnsafeDynamicBuffer<EntityLinkEntry> buffer, in EntityLinkMutate mutate, Entity newTarget)
+            private static void ApplyMutation(UnsafeDynamicBuffer<EntityLinkEntry> buffer, in EntityLinkMutate mutate,
+                Entity newTarget)
             {
                 switch (mutate.Mode)
                 {
@@ -128,16 +129,12 @@ namespace BovineLabs.Timeline.EntityLinks
                     if (buffer[i].Key == linkKey) idxA = i;
                     else if (buffer[i].Key == swapKey) idxB = i;
 
-                // Nothing to swap when neither key is present; avoid appending junk Null entries.
                 if (idxA == -1 && idxB == -1)
                     return;
 
                 var targetA = idxA != -1 ? buffer[idxA].Target : Entity.Null;
                 var targetB = idxB != -1 ? buffer[idxB].Target : Entity.Null;
 
-                // A stored Null target counts as a successful resolve and suppresses fallback,
-                // so when the value moving into a key is Null we remove that key instead of writing Null.
-                // Use key-based operations because Remove may shift indices.
                 SetRemoveOrAdd(buffer, linkKey, targetB);
                 SetRemoveOrAdd(buffer, swapKey, targetA);
             }
@@ -149,9 +146,6 @@ namespace BovineLabs.Timeline.EntityLinks
                         buffer.RemoveAt(i);
             }
 
-            // Writes target onto key (updating in place if present, adding otherwise). A Null target
-            // removes the key instead of storing Null, which would otherwise read back as a successful
-            // resolve and suppress fallback.
             private static void SetRemoveOrAdd(UnsafeDynamicBuffer<EntityLinkEntry> buffer, ushort key, Entity target)
             {
                 if (target == Entity.Null)

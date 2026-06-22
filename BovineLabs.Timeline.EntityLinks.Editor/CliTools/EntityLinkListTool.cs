@@ -11,7 +11,8 @@ namespace BovineLabs.Timeline.EntityLinks.Editor.CliTools
     [UnityCliTool(
         Name = "entitylink_list",
         Group = "vex",
-        Description = "Read-only project sweep of every EntityLinkSchema asset: assetPath, guid, and the imported runtime id. Flags id == 0 as unusable (the id-0-unusable check). No subscene needed (§3.4 discovery).")]
+        Description =
+            "Read-only project sweep of every EntityLinkSchema asset: assetPath, guid, and the imported runtime id. Flags id == 0 as unusable (the id-0-unusable check). No subscene needed (§3.4 discovery).")]
     public static class EntityLinkListTool
     {
         public static object HandleCommand(JObject @params)
@@ -23,7 +24,7 @@ namespace BovineLabs.Timeline.EntityLinks.Editor.CliTools
 
                 foreach (var guid in AssetDatabase.FindAssets($"t:{nameof(EntityLinkSchema)}"))
                 {
-                    string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                    var assetPath = AssetDatabase.GUIDToAssetPath(guid);
                     var schema = AssetDatabase.LoadAssetAtPath<EntityLinkSchema>(assetPath);
                     if (schema == null) continue;
                     found.Add((schema.name, assetPath, guid, schema.Id));
@@ -34,22 +35,25 @@ namespace BovineLabs.Timeline.EntityLinks.Editor.CliTools
                     .ThenBy(s => s.id)
                     .Select(s => (object)new
                     {
-                        name = s.name,
-                        assetPath = s.assetPath,
-                        guid = s.guid,
-                        id = s.id,
-                        idUsable = s.id != 0,
+                        s.name,
+                        s.assetPath,
+                        s.guid,
+                        s.id,
+                        idUsable = s.id != 0
                     })
                     .ToList();
 
-                int unusable = found.Count(s => s.id == 0);
-                string message = unusable == 0
+                var unusable = found.Count(s => s.id == 0);
+                var message = unusable == 0
                     ? $"{found.Count} link schema(s)."
                     : $"{found.Count} link schema(s); {unusable} with id 0 (UNUSABLE — re-import to assign a key).";
 
-                return ToolEnvelope.Ok(message, result: new { schemas });
+                return ToolEnvelope.Ok(message, new { schemas });
             }
-            catch (ToolException e) { return ToolEnvelope.FromException(e); }
+            catch (ToolException e)
+            {
+                return ToolEnvelope.FromException(e);
+            }
         }
     }
 }

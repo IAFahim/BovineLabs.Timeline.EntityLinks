@@ -12,11 +12,11 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
     public sealed class EntityLinkMutateClip : DOTSClip, ITimelineClipAsset
     {
         [Header("Operation")]
-        [Tooltip("Assign / Swap / Remove. These are PERMANENT runtime mutations to the link map: the change is applied once when the clip starts and is NOT auto-restored when the clip ends (unlike the Parent clip's restoreOnEnd). Undo it with a compensating clip.")]
+        [Tooltip(
+            "Assign / Swap / Remove. These are PERMANENT runtime mutations to the link map: the change is applied once when the clip starts and is NOT auto-restored when the clip ends (unlike the Parent clip's restoreOnEnd). Undo it with a compensating clip.")]
         public EntityLinkMutateMode mode = EntityLinkMutateMode.Assign;
 
-        [Header("Link")]
-        [Tooltip("The link key whose entry in the link map is mutated.")]
+        [Header("Link")] [Tooltip("The link key whose entry in the link map is mutated.")]
         public EntityLinkSchema link;
 
         [Tooltip("Which Targets slot to read the link-map root from.")]

@@ -99,8 +99,6 @@ namespace BovineLabs.Timeline.EntityLinks
                     !config.RotationOffset.Equals(quaternion.identity))
                     desiredWorldRot = math.mul(desiredWorldRot, config.RotationOffset);
 
-                // Fall back to a world-space write when the parent transform is non-invertible (zero/degenerate
-                // scale) so math.inverse cannot emit NaN/Inf into the child's LocalTransform.
                 if (ParentLookup.TryGetComponent(entityToMove, out var parent) &&
                     LtwLookup.TryGetComponent(parent.Value, out var parentLtw) &&
                     math.abs(math.determinant(parentLtw.Value)) > 1e-12f)

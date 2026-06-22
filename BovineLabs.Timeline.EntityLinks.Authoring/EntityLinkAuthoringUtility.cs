@@ -50,7 +50,8 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
             linked = null;
 
             foreach (var source in root.Links)
-                if (source != null && source.HasSchema(schema) && source.TryGetRoot(out var sourceRoot) && sourceRoot == root)
+                if (source != null && source.HasSchema(schema) && source.TryGetRoot(out var sourceRoot) &&
+                    sourceRoot == root)
                 {
                     linked = source;
                     return true;

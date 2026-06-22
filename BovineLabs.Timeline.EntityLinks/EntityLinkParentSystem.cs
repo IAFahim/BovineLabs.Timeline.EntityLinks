@@ -115,8 +115,6 @@ namespace BovineLabs.Timeline.EntityLinks
                 var childTransform = LocalTransform.FromPositionRotation(config.LocalPosition, config.LocalRotation);
                 var commands = new CommandBufferParallelCommands(ECB, sortKey, entityToParent);
 
-                // Only reparent AND move the entity when the parent link actually resolved. If it did not,
-                // leave the entity untouched rather than teleporting it to the clip's local pose in world space.
                 if (resolvedParent != Entity.Null && LtwLookup.TryGetComponent(resolvedParent, out var parentLtw))
                 {
                     var childs = ChildLookup.HasBuffer(resolvedParent) ? ChildLookup[resolvedParent] : default;
@@ -143,11 +141,6 @@ namespace BovineLabs.Timeline.EntityLinks
 
             public EntityCommandBuffer.ParallelWriter ECB;
 
-            // EnterJob and ExitJob write into the SAME ECB parallel writer but iterate different queries, so
-            // their [EntityIndexInQuery] sortKeys overlap. When one clip enters and another exits on the same
-            // target entity in the same frame, equal sortKeys make the final Parent order-undefined. Offset the
-            // exit sortKey into a disjoint, higher range so restore commands deterministically sort after the
-            // enter commands of that frame.
             public const int ExitSortKeyOffset = 1 << 24;
 
             private void Execute(
@@ -171,9 +164,6 @@ namespace BovineLabs.Timeline.EntityLinks
                     TransformUtility.SetupParent(ref commands, state.PreviousParent, state.Target, parentLtw,
                         state.OriginalLocalTransform, childs);
 
-                    // SetupParent writes Parent/PreviousParent/LocalToWorld but NOT LocalTransform. Without
-                    // this, the stale clip-offset LocalTransform survives and the next transform pass snaps
-                    // the entity to that offset relative to the restored parent. Restore the captured pose.
                     if (state.HadLocalTransform)
                         ECB.SetComponent(sortKey, state.Target, state.OriginalLocalTransform);
                 }
@@ -184,22 +174,14 @@ namespace BovineLabs.Timeline.EntityLinks
 
                     if (!state.HadLocalTransform)
                     {
-                        // We ADDED a LocalTransform on enter (the entity had none); remove it so the
-                        // transform-less case is fully idempotent rather than leaving a stray component.
                         ECB.RemoveComponent<LocalTransform>(sortKey, state.Target);
                     }
                     else if (!state.HadParent)
                     {
-                        // Genuinely had no parent originally: OriginalLocalTransform is a valid rootless pose.
                         ECB.SetComponent(sortKey, state.Target, state.OriginalLocalTransform);
                     }
                     else if (LtwLookup.TryGetComponent(state.Target, out var selfLtw))
                     {
-                        // It HAD a parent that no longer exists, so OriginalLocalTransform is parent-RELATIVE
-                        // and writing it as a rootless pose would teleport the entity. Snap the current WORLD
-                        // pose as the rootless local pose so it stays where it is. Strip an invertible
-                        // PostTransformMatrix first (it carries the non-uniform scale FromMatrix would
-                        // collapse), mirroring TemporaryDetachSystem; the matrix component is left in place.
                         var rigid = selfLtw.Value;
                         if (PtmLookup.TryGetComponent(state.Target, out var ptm) &&
                             math.abs(math.determinant(ptm.Value)) > 1e-12f)

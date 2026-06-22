@@ -16,10 +16,8 @@ namespace BovineLabs.Timeline.EntityLinks.Data
         public Target ReadRootFrom;
         public ushort LinkKey;
 
-        /// <summary>Target entity to write into the link (Assign/Swap only).</summary>
         public Target NewTarget;
 
-        /// <summary>Second key for swap operations (Swap only). 0 = swap with Entity.Null.</summary>
         public ushort SwapKey;
     }
 }

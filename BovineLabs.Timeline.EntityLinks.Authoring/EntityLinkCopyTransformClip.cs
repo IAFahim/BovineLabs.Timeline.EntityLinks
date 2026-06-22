@@ -14,22 +14,19 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         [Tooltip("Which Targets slot is moved each frame to match the linked source.")]
         public Target entityToMove = Target.Target;
 
-        [Header("Source Link")]
-        [Tooltip("Which Targets slot to read the link-map root from.")]
+        [Header("Source Link")] [Tooltip("Which Targets slot to read the link-map root from.")]
         public Target readRootFrom = Target.Owner;
 
         [Tooltip("The link key whose entity is followed as the transform source.")]
         public EntityLinkSchema link;
 
-        [Header("Copy Mask")]
-        [Tooltip("Copy the source position each frame.")]
+        [Header("Copy Mask")] [Tooltip("Copy the source position each frame.")]
         public bool copyPosition = true;
 
         [Tooltip("Copy the source rotation each frame.")]
         public bool copyRotation = true;
 
-        [Header("Offsets (Applied in Source Space)")]
-        [Tooltip("Position offset added in the source's local space.")]
+        [Header("Offsets (Applied in Source Space)")] [Tooltip("Position offset added in the source's local space.")]
         public Vector3 positionOffset;
 
         [Tooltip("Rotation offset (Euler degrees) applied in the source's local space.")]

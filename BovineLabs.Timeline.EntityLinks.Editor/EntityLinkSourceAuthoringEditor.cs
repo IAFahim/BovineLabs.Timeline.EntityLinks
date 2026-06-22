@@ -1,49 +1,33 @@
-// <copyright file="EntityLinkSourceAuthoringEditor.cs" company="BovineLabs">
-//     Copyright (c) BovineLabs. All rights reserved.
-// </copyright>
+using BovineLabs.Core.Editor.Inspectors;
+using BovineLabs.Timeline.Core.Editor;
+using BovineLabs.Timeline.EntityLinks.Authoring;
+using UnityEditor;
+using UnityEditor.UIElements;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace BovineLabs.Timeline.EntityLinks.Editor
 {
-    using BovineLabs.Core.Editor.Inspectors;
-    using BovineLabs.Timeline.Core.Editor;
-    using BovineLabs.Timeline.EntityLinks.Authoring;
-    using UnityEditor;
-    using UnityEditor.UIElements;
-    using UnityEngine;
-    using UnityEngine.UIElements;
-
-    /// <summary>
-    /// Inspector for <see cref="EntityLinkSourceAuthoring" /> that, like the TargetsAuthoring treatment, reveals
-    /// the auto-resolved <c>Root</c>: when the field is empty the Source still binds to its parent
-    /// <see cref="EntityLinkRootAuthoring" /> (<c>TryGetRoot</c>), so a slight hint shows which root that is —
-    /// or warns when none exists. Schema ids on the <c>Schemas</c> array are surfaced by
-    /// <see cref="EntityLinkSchemaDrawer" />.
-    /// </summary>
     [CustomEditor(typeof(EntityLinkSourceAuthoring))]
     public sealed class EntityLinkSourceAuthoringEditor : ElementEditor
     {
-        /// <inheritdoc />
         protected override VisualElement CreateElement(SerializedProperty property)
         {
-            if (property.name != "Root" || this.MultiEditing)
-            {
-                return base.CreateElement(property);
-            }
+            if (property.name != "Root" || MultiEditing) return base.CreateElement(property);
 
             var container = new VisualElement();
-            container.Add(CreatePropertyField(property, this.serializedObject));
+            container.Add(CreatePropertyField(property, serializedObject));
 
-            var authoring = (EntityLinkSourceAuthoring)this.target;
+            var authoring = (EntityLinkSourceAuthoring)target;
             GameObject resolved = null;
 
-            // When Root is empty it still bakes to the parent root — this button opens that GameObject's properties.
             var ping = new Button(() => EditorInspect.Open(resolved));
             ping.style.unityTextAlign = TextAnchor.MiddleLeft;
             container.Add(ping);
 
             var warn = new Label("⚠ no EntityLinkRootAuthoring in parents — this Source won't bake.")
             {
-                pickingMode = PickingMode.Ignore,
+                pickingMode = PickingMode.Ignore
             };
             warn.style.opacity = 0.7f;
             warn.style.whiteSpace = WhiteSpace.Normal;
@@ -51,7 +35,7 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
 
             void Refresh()
             {
-                var prop = this.serializedObject.FindProperty("Root");
+                var prop = serializedObject.FindProperty("Root");
                 if (prop.objectReferenceValue != null)
                 {
                     ping.style.display = DisplayStyle.None;

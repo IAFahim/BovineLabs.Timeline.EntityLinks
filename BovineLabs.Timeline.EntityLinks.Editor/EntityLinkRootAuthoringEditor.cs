@@ -1,49 +1,37 @@
-// <copyright file="EntityLinkRootAuthoringEditor.cs" company="BovineLabs">
-//     Copyright (c) BovineLabs. All rights reserved.
-// </copyright>
+using System.Collections.Generic;
+using BovineLabs.Core.Editor.Inspectors;
+using BovineLabs.Timeline.Core.Editor;
+using BovineLabs.Timeline.EntityLinks.Authoring;
+using UnityEditor;
+using UnityEditor.UIElements;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace BovineLabs.Timeline.EntityLinks.Editor
 {
-    using System.Collections.Generic;
-    using BovineLabs.Core.Editor.Inspectors;
-    using BovineLabs.Timeline.Core.Editor;
-    using BovineLabs.Timeline.EntityLinks.Authoring;
-    using UnityEditor;
-    using UnityEditor.UIElements;
-    using UnityEngine;
-    using UnityEngine.UIElements;
-
-    /// <summary>
-    /// Inspector for <see cref="EntityLinkRootAuthoring" /> that shows the <b>resolved link table</b> the baker
-    /// produces — each schema (name + id) mapped to the Source GameObject it points at — plus the baker's
-    /// failure cases (id 0, duplicate key, Source under a different root) as inline warnings. Otherwise the
-    /// inspector only shows a raw <c>Links</c> array and the actual "which Source is the 'Hand' link?" mapping
-    /// stays invisible until runtime.
-    /// </summary>
     [CustomEditor(typeof(EntityLinkRootAuthoring))]
     public sealed class EntityLinkRootAuthoringEditor : ElementEditor
     {
-        /// <inheritdoc />
         protected override void PostElementCreation(VisualElement root, bool createdElements)
         {
             var foldout = CreateFoldout("Resolved Links", true);
             root.Add(foldout);
 
-            this.Rebuild(foldout);
-            foldout.TrackSerializedObjectValue(this.serializedObject, _ => this.Rebuild(foldout));
+            Rebuild(foldout);
+            foldout.TrackSerializedObjectValue(serializedObject, _ => Rebuild(foldout));
         }
 
         private void Rebuild(VisualElement foldout)
         {
             foldout.Clear();
 
-            if (this.MultiEditing)
+            if (MultiEditing)
             {
                 foldout.Add(new Label("(multi-editing)"));
                 return;
             }
 
-            var authoring = (EntityLinkRootAuthoring)this.target;
+            var authoring = (EntityLinkRootAuthoring)target;
             var rows = Resolve(authoring);
 
             if (rows.Count == 0)
@@ -55,10 +43,7 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
                 return;
             }
 
-            foreach (var row in rows)
-            {
-                foldout.Add(row.Warning != null ? Warning(row.Warning) : LinkRow(row));
-            }
+            foreach (var row in rows) foldout.Add(row.Warning != null ? Warning(row.Warning) : LinkRow(row));
         }
 
         private static VisualElement LinkRow(Row row)
@@ -74,12 +59,11 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
             label.style.minWidth = 120;
             container.Add(label);
 
-            // The whole value is a button: click it to open the linked GameObject in a Properties window (Alt+P).
             var target = row.Target;
             var open = new Button(() => EditorInspect.Open(target))
             {
                 text = target != null ? $"◎  {target.name}" : "◎  (missing)",
-                tooltip = target != null ? $"Open '{target.name}' properties." : "Linked GameObject missing.",
+                tooltip = target != null ? $"Open '{target.name}' properties." : "Linked GameObject missing."
             };
             open.style.flexGrow = 1;
             open.style.unityTextAlign = TextAnchor.MiddleLeft;
@@ -93,7 +77,6 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
             return new HelpBox(text, HelpBoxMessageType.Warning);
         }
 
-        // Mirror EntityLinkRootAuthoring.Baker: walk Links, key each non-zero schema, detect the same failures.
         private static List<Row> Resolve(EntityLinkRootAuthoring authoring)
         {
             var rows = new List<Row>();
@@ -101,10 +84,7 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
 
             foreach (var source in authoring.Links)
             {
-                if (source == null)
-                {
-                    continue;
-                }
+                if (source == null) continue;
 
                 if (!source.TryGetRoot(out var sourceRoot) || sourceRoot != authoring)
                 {
@@ -114,20 +94,19 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
 
                 foreach (var schema in source.Schemas)
                 {
-                    if (schema == null)
-                    {
-                        continue;
-                    }
+                    if (schema == null) continue;
 
                     if (schema.Id == 0)
                     {
-                        rows.Add(Row.Warn($"Schema '{schema.name}' on '{source.name}' has id 0 (un-imported) — re-import to assign a key."));
+                        rows.Add(Row.Warn(
+                            $"Schema '{schema.name}' on '{source.name}' has id 0 (un-imported) — re-import to assign a key."));
                         continue;
                     }
 
                     if (!seen.Add(schema.Id))
                     {
-                        rows.Add(Row.Warn($"Duplicate link key {schema.Id} ('{schema.name}' on '{source.name}') — ignored by the baker."));
+                        rows.Add(Row.Warn(
+                            $"Duplicate link key {schema.Id} ('{schema.name}' on '{source.name}') — ignored by the baker."));
                         continue;
                     }
 
@@ -147,15 +126,21 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
 
             private Row(string schemaName, ushort id, GameObject target, string warning)
             {
-                this.SchemaName = schemaName;
-                this.Id = id;
-                this.Target = target;
-                this.Warning = warning;
+                SchemaName = schemaName;
+                Id = id;
+                Target = target;
+                Warning = warning;
             }
 
-            public static Row Link(string schemaName, ushort id, GameObject target) => new(schemaName, id, target, null);
+            public static Row Link(string schemaName, ushort id, GameObject target)
+            {
+                return new Row(schemaName, id, target, null);
+            }
 
-            public static Row Warn(string warning) => new(null, 0, null, warning);
+            public static Row Warn(string warning)
+            {
+                return new Row(null, 0, null, warning);
+            }
         }
     }
 }
