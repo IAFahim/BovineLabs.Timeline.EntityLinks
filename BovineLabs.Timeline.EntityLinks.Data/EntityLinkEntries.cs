@@ -21,7 +21,7 @@ namespace BovineLabs.Timeline.EntityLinks.Data
 
         internal static void Swap(UnsafeDynamicBuffer<EntityLinkEntry> buffer, ushort linkKey, ushort swapKey)
         {
-            if (linkKey == swapKey)
+            if (linkKey == swapKey || linkKey == 0 || swapKey == 0)
                 return;
 
             int idxA = -1, idxB = -1;

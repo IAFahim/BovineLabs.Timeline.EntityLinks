@@ -13,6 +13,7 @@ using Unity.Transforms;
 namespace BovineLabs.Timeline.EntityLinks
 {
     [UpdateInGroup(typeof(TimelineComponentAnimationGroup))]
+    [UpdateAfter(typeof(EntityLinkTargetPatchSystem))]
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation |
                        WorldSystemFilterFlags.ServerSimulation)]
     public partial struct EntityLinkParentSystem : ISystem
@@ -184,7 +185,6 @@ namespace BovineLabs.Timeline.EntityLinks
                 else
                 {
                     ECB.RemoveComponent<Parent>(sortKey, state.Target);
-                    ECB.RemoveComponent<PreviousParent>(sortKey, state.Target);
 
                     if (!state.HadLocalTransform)
                     {

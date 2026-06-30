@@ -17,7 +17,6 @@ namespace BovineLabs.Timeline.EntityLinks.Editor.CliTools
     {
         public static object HandleCommand(JObject @params)
         {
-            _ = new Params(@params);
             try
             {
                 var found = new List<(string name, string assetPath, string guid, ushort id)>();

@@ -175,7 +175,7 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkParentSystem_Enter_ParentsTargetToResolvedLink()
         {
-            var ecbSystem = World.CreateSystem<EndFixedStepSimulationEntityCommandBufferSystem>();
+            var ecbSystem = World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
             var system = World.CreateSystem<EntityLinkParentSystem>();
             var parent = CreateTransformEntity();
             var child = CreateTransformEntity();
@@ -193,8 +193,8 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             Manager.AddComponentData(clip, new EntityLinkParentState());
 
             system.Update(WorldUnmanaged);
-            ecbSystem.Update(WorldUnmanaged);
             Manager.CompleteAllTrackedJobs();
+            ecbSystem.Update(WorldUnmanaged);
 
             Assert.AreEqual(parent, Manager.GetComponentData<Parent>(child).Value);
             Assert.AreEqual(new float3(1, 2, 3), Manager.GetComponentData<LocalTransform>(child).Position);
@@ -206,7 +206,7 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
         [Test]
         public void EntityLinkParentSystem_Exit_RestoresPreviousParent()
         {
-            var ecbSystem = World.CreateSystem<EndFixedStepSimulationEntityCommandBufferSystem>();
+            var ecbSystem = World.CreateSystem<BeginSimulationEntityCommandBufferSystem>();
             var system = World.CreateSystem<EntityLinkParentSystem>();
             var previousParent = CreateTransformEntity();
             var currentParent = CreateTransformEntity();
@@ -224,8 +224,8 @@ namespace BovineLabs.Timeline.EntityLinks.Tests
             });
 
             system.Update(WorldUnmanaged);
-            ecbSystem.Update(WorldUnmanaged);
             Manager.CompleteAllTrackedJobs();
+            ecbSystem.Update(WorldUnmanaged);
 
             Assert.AreEqual(previousParent, Manager.GetComponentData<Parent>(child).Value);
             World.DestroySystem(system);

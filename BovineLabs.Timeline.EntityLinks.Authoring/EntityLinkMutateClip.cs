@@ -22,8 +22,8 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         [Tooltip("Which Targets slot to read the link-map root from.")]
         public Target readRootFrom = Target.Source;
 
-        [Header("Assign / Swap Target")]
-        [Tooltip("Entity written into the link on Assign, or supplied to the swap on Swap. Ignored on Remove.")]
+        [Header("Assign Target")]
+        [Tooltip("Entity written into the link on Assign. Ignored on Swap and Remove.")]
         public Target newTarget = Target.Target;
 
         [Header("Swap")]
@@ -41,7 +41,11 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 return;
             }
 
-            EntityLinkAuthoringUtility.TryGetKey(swapLink, out var swapKey);
+            if (!EntityLinkAuthoringUtility.TryGetKey(swapLink, out var swapKey) && mode == EntityLinkMutateMode.Swap)
+            {
+                Debug.LogError($"{nameof(EntityLinkMutateClip)} '{name}' Swap mode requires a swap link.");
+                return;
+            }
 
             var builder = new EntityLinkMutateBuilder
             {

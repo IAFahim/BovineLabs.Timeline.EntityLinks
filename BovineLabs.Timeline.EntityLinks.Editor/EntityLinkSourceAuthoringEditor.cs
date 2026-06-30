@@ -36,10 +36,21 @@ namespace BovineLabs.Timeline.EntityLinks.Editor
             void Refresh()
             {
                 var prop = serializedObject.FindProperty("Root");
-                if (prop.objectReferenceValue != null)
+                if (prop.objectReferenceValue is EntityLinkRootAuthoring assigned)
                 {
-                    ping.style.display = DisplayStyle.None;
-                    warn.style.display = DisplayStyle.None;
+                    if (authoring != null && !authoring.transform.IsChildOf(assigned.transform))
+                    {
+                        resolved = null;
+                        ping.style.display = DisplayStyle.None;
+                        warn.text = $"⚠ Root '{assigned.name}' is not a parent of this Source — the root only bakes Sources under it, so this link won't bake.";
+                        warn.style.display = DisplayStyle.Flex;
+                    }
+                    else
+                    {
+                        ping.style.display = DisplayStyle.None;
+                        warn.style.display = DisplayStyle.None;
+                    }
+
                     return;
                 }
 
