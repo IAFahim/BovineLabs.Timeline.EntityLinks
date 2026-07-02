@@ -47,6 +47,12 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
                 return;
             }
 
+            if (mode == EntityLinkMutateMode.Swap && key == swapKey)
+            {
+                Debug.LogError($"{nameof(EntityLinkMutateClip)} '{name}' Swap requires two different link schemas (link and swapLink are the same).");
+                return;
+            }
+
             var builder = new EntityLinkMutateBuilder
             {
                 Mode = mode,

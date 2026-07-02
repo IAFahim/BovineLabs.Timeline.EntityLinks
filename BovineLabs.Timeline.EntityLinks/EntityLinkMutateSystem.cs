@@ -92,7 +92,8 @@ namespace BovineLabs.Timeline.EntityLinks
                 switch (mutate.Mode)
                 {
                     case EntityLinkMutateMode.Assign:
-                        EntityLinkEntries.Assign(buffer, mutate.LinkKey, newTarget);
+                        if (newTarget != Entity.Null)
+                            EntityLinkEntries.Assign(buffer, mutate.LinkKey, newTarget);
                         break;
 
                     case EntityLinkMutateMode.Swap:

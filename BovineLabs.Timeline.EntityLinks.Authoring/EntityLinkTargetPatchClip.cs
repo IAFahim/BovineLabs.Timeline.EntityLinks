@@ -21,7 +21,7 @@ namespace BovineLabs.Timeline.EntityLinks.Authoring
         public Target WriteTo = Target.Target;
 
         [Tooltip("Entity written to the slot when the link resolves to Null.")]
-        public Target Fallback = Target.Target;
+        public Target Fallback = Target.None;
 
         public override double duration => 1;
         public ClipCaps clipCaps => ClipCaps.None;
