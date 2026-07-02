@@ -128,19 +128,25 @@ namespace BovineLabs.Timeline.EntityLinks
                 state.OriginalLocalTransform = state.HadLocalTransform ? originalLocal : LocalTransform.Identity;
 
                 var childTransform = LocalTransform.FromPositionRotation(config.LocalPosition, config.LocalRotation);
-                var commands = new CommandBufferParallelCommands(ECB, sortKey, entityToParent);
 
-                if (resolvedParent != Entity.Null && LtwLookup.TryGetComponent(resolvedParent, out var parentLtw))
+                if (resolvedParent != Entity.Null && LtwLookup.HasComponent(resolvedParent))
                 {
-                    var childs = ChildLookup.HasBuffer(resolvedParent) ? ChildLookup[resolvedParent] : default;
-                    TransformUtility.SetupParent(ref commands, resolvedParent, entityToParent, parentLtw,
-                        childTransform, childs);
-                    state.ParentApplied = true;
+                    // Reparent through Unity's ParentSystem: write only Parent and let its
+                    // PreviousParent-diffing maintain BOTH the old and new parent's Child buffers.
+                    // SetupParent must NOT be used for an entity that may already have a parent — it
+                    // sets PreviousParent = new parent, suppressing the diff so the child is never
+                    // removed from its original parent's Child buffer (hierarchy corruption).
+                    if (ParentLookup.HasComponent(entityToParent))
+                        ECB.SetComponent(sortKey, entityToParent, new Parent { Value = resolvedParent });
+                    else
+                        ECB.AddComponent(sortKey, entityToParent, new Parent { Value = resolvedParent });
 
                     if (state.HadLocalTransform)
                         ECB.SetComponent(sortKey, entityToParent, childTransform);
                     else
                         ECB.AddComponent(sortKey, entityToParent, childTransform);
+
+                    state.ParentApplied = true;
                 }
             }
         }
@@ -169,15 +175,12 @@ namespace BovineLabs.Timeline.EntityLinks
                 var sortKey = indexInQuery + ExitSortKeyOffset;
 
                 if (state.HadParent && state.PreviousParent != Entity.Null &&
-                    LtwLookup.TryGetComponent(state.PreviousParent, out var parentLtw))
+                    LtwLookup.HasComponent(state.PreviousParent))
                 {
-                    var commands = new CommandBufferParallelCommands(ECB, sortKey, state.Target);
-                    var childs = ChildLookup.HasBuffer(state.PreviousParent)
-                        ? ChildLookup[state.PreviousParent]
-                        : default;
-
-                    TransformUtility.SetupParent(ref commands, state.PreviousParent, state.Target, parentLtw,
-                        state.OriginalLocalTransform, childs);
+                    // Restore the original parent pointer only; ParentSystem moves the child out of
+                    // the timeline parent's Child buffer and back into PreviousParent's via diffing.
+                    // (Same reason as EnterJob: never hand-roll PreviousParent / the Child buffer.)
+                    ECB.SetComponent(sortKey, state.Target, new Parent { Value = state.PreviousParent });
 
                     if (state.HadLocalTransform)
                         ECB.SetComponent(sortKey, state.Target, state.OriginalLocalTransform);
