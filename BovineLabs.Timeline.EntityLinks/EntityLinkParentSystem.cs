@@ -79,7 +79,6 @@ namespace BovineLabs.Timeline.EntityLinks
 
         [BurstCompile]
         [WithAll(typeof(ClipActive))]
-        [WithDisabled(typeof(ClipActivePrevious))]
         private partial struct EnterJob : IJobEntity
         {
             [ReadOnly] public UnsafeComponentLookup<Targets> TargetsLookup;
@@ -98,7 +97,11 @@ namespace BovineLabs.Timeline.EntityLinks
                 in EntityLinkParentData config,
                 ref EntityLinkParentState state)
             {
-                state.ParentApplied = false;
+                // Retry resolution every active frame until the first success, instead of only on the enter
+                // edge — a one-frame link/parent resolve miss no longer silently kills the whole clip.
+                // ExitJob clears ParentApplied so re-entry reparents again.
+                if (state.ParentApplied)
+                    return;
 
                 var bindingEntity = binding.Value;
                 if (bindingEntity == Entity.Null)
@@ -121,16 +124,18 @@ namespace BovineLabs.Timeline.EntityLinks
                 if (!EntityLinkResolver.TryResolveFromRoot(root, config.ParentLinkKey, Links, out var resolvedParent))
                     return;
 
-                state.Target = entityToParent;
-                state.HadParent = ParentLookup.TryGetComponent(entityToParent, out var oldParent);
-                state.PreviousParent = state.HadParent ? oldParent.Value : Entity.Null;
-                state.HadLocalTransform = LocalTransformLookup.TryGetComponent(entityToParent, out var originalLocal);
-                state.OriginalLocalTransform = state.HadLocalTransform ? originalLocal : LocalTransform.Identity;
-
                 var childTransform = LocalTransform.FromPositionRotation(config.LocalPosition, config.LocalRotation);
 
                 if (resolvedParent != Entity.Null && LtwLookup.HasComponent(resolvedParent))
                 {
+                    // Capture the original parent/transform only on the first successful apply so a later
+                    // retry frame can't overwrite the snapshot with mid-clip state.
+                    state.Target = entityToParent;
+                    state.HadParent = ParentLookup.TryGetComponent(entityToParent, out var oldParent);
+                    state.PreviousParent = state.HadParent ? oldParent.Value : Entity.Null;
+                    state.HadLocalTransform = LocalTransformLookup.TryGetComponent(entityToParent, out var originalLocal);
+                    state.OriginalLocalTransform = state.HadLocalTransform ? originalLocal : LocalTransform.Identity;
+
                     // Reparent through Unity's ParentSystem: write only Parent and let its
                     // PreviousParent-diffing maintain BOTH the old and new parent's Child buffers.
                     // SetupParent must NOT be used for an entity that may already have a parent — it
@@ -169,41 +174,47 @@ namespace BovineLabs.Timeline.EntityLinks
                 in EntityLinkParentData config,
                 ref EntityLinkParentState state)
             {
-                if (!config.RestoreOnEnd || state.Target == Entity.Null || !state.ParentApplied)
+                if (state.Target == Entity.Null || !state.ParentApplied)
                     return;
 
                 var sortKey = indexInQuery + ExitSortKeyOffset;
 
-                if (state.HadParent && state.PreviousParent != Entity.Null &&
-                    LtwLookup.HasComponent(state.PreviousParent))
+                if (config.RestoreOnEnd)
                 {
-                    // Restore the original parent pointer only; ParentSystem moves the child out of
-                    // the timeline parent's Child buffer and back into PreviousParent's via diffing.
-                    // (Same reason as EnterJob: never hand-roll PreviousParent / the Child buffer.)
-                    ECB.SetComponent(sortKey, state.Target, new Parent { Value = state.PreviousParent });
+                    if (state.HadParent && state.PreviousParent != Entity.Null &&
+                        LtwLookup.HasComponent(state.PreviousParent))
+                    {
+                        // Restore the original parent pointer only; ParentSystem moves the child out of
+                        // the timeline parent's Child buffer and back into PreviousParent's via diffing.
+                        // (Same reason as EnterJob: never hand-roll PreviousParent / the Child buffer.)
+                        ECB.SetComponent(sortKey, state.Target, new Parent { Value = state.PreviousParent });
 
-                    if (state.HadLocalTransform)
-                        ECB.SetComponent(sortKey, state.Target, state.OriginalLocalTransform);
-                }
-                else
-                {
-                    ECB.RemoveComponent<Parent>(sortKey, state.Target);
+                        if (state.HadLocalTransform)
+                            ECB.SetComponent(sortKey, state.Target, state.OriginalLocalTransform);
+                    }
+                    else
+                    {
+                        ECB.RemoveComponent<Parent>(sortKey, state.Target);
 
-                    if (!state.HadLocalTransform)
-                    {
-                        ECB.RemoveComponent<LocalTransform>(sortKey, state.Target);
-                    }
-                    else if (!state.HadParent)
-                    {
-                        ECB.SetComponent(sortKey, state.Target, state.OriginalLocalTransform);
-                    }
-                    else if (LtwLookup.TryGetComponent(state.Target, out var selfLtw))
-                    {
-                        var hasPtm = PtmLookup.TryGetComponent(state.Target, out var ptm);
-                        EntityLinkParentRecovery.TryRecoverRigid(selfLtw.Value, hasPtm, ptm.Value, out var rigid);
-                        ECB.SetComponent(sortKey, state.Target, LocalTransform.FromMatrix(rigid));
+                        if (!state.HadLocalTransform)
+                        {
+                            ECB.RemoveComponent<LocalTransform>(sortKey, state.Target);
+                        }
+                        else if (!state.HadParent)
+                        {
+                            ECB.SetComponent(sortKey, state.Target, state.OriginalLocalTransform);
+                        }
+                        else if (LtwLookup.TryGetComponent(state.Target, out var selfLtw))
+                        {
+                            var hasPtm = PtmLookup.TryGetComponent(state.Target, out var ptm);
+                            EntityLinkParentRecovery.TryRecoverRigid(selfLtw.Value, hasPtm, ptm.Value, out var rigid);
+                            ECB.SetComponent(sortKey, state.Target, LocalTransform.FromMatrix(rigid));
+                        }
                     }
                 }
+
+                // Clear on the exit edge (regardless of RestoreOnEnd) so a re-activated clip reparents again.
+                state.ParentApplied = false;
             }
         }
     }

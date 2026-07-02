@@ -5,6 +5,7 @@ using BovineLabs.Timeline.Data;
 using BovineLabs.Timeline.EntityLinks.Data;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -27,7 +28,7 @@ namespace BovineLabs.Timeline.EntityLinks
         {
             state.RequireForUpdate<EntityLinkCopyTransform>();
             _ltwLookup = state.GetComponentLookup<LocalToWorld>(true);
-            _localTransformLookup = state.GetComponentLookup<LocalTransform>(true);
+            _localTransformLookup = state.GetComponentLookup<LocalTransform>(false); // written directly (see CopyTransformJob)
             _parentLookup = state.GetComponentLookup<Parent>(true);
         }
 
@@ -38,9 +39,6 @@ namespace BovineLabs.Timeline.EntityLinks
             _localTransformLookup.Update(ref state);
             _parentLookup.Update(ref state);
 
-            var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
-
             state.Dependency = new CopyTransformJob
             {
                 TargetsLookup = state.GetUnsafeComponentLookup<Targets>(true),
@@ -48,8 +46,7 @@ namespace BovineLabs.Timeline.EntityLinks
                 Links = state.GetUnsafeBufferLookup<EntityLinkEntry>(true),
                 LtwLookup = _ltwLookup,
                 LocalTransformLookup = _localTransformLookup,
-                ParentLookup = _parentLookup,
-                ECB = ecb
+                ParentLookup = _parentLookup
             }.ScheduleParallel(state.Dependency);
         }
 
@@ -62,11 +59,12 @@ namespace BovineLabs.Timeline.EntityLinks
             [ReadOnly] public UnsafeBufferLookup<EntityLinkEntry> Links;
             [ReadOnly] public ComponentLookup<LocalToWorld> LtwLookup;
             [ReadOnly] public ComponentLookup<Parent> ParentLookup;
-            [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
-            public EntityCommandBuffer.ParallelWriter ECB;
 
-            private void Execute([EntityIndexInQuery] int sortKey, in TrackBinding binding,
-                in EntityLinkCopyTransform config)
+            // Read (current pose) and written (composed result) in the same job. NativeDisableParallelForRestriction
+            // because writes are keyed by resolved target entity, not the iterated clip entity.
+            [NativeDisableParallelForRestriction] public ComponentLookup<LocalTransform> LocalTransformLookup;
+
+            private void Execute(in TrackBinding binding, in EntityLinkCopyTransform config)
             {
                 var bindingEntity = binding.Value;
                 if (bindingEntity == Entity.Null ||
@@ -107,7 +105,9 @@ namespace BovineLabs.Timeline.EntityLinks
                     parentLtw,
                     out var result);
 
-                ECB.SetComponent(sortKey, entityToMove, result);
+                // Direct value write (the line-77 guard proves the component exists) — consumed by
+                // TransformSystemGroup this frame, avoiding the begin-frame ECB's one-frame follow lag.
+                LocalTransformLookup[entityToMove] = result;
             }
         }
     }
